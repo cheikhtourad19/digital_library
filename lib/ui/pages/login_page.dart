@@ -1,3 +1,4 @@
+import 'package:digital_library/ui/components/buttons/app_button.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/navigation/app_router.dart';
@@ -17,7 +18,9 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
+
   bool _isSubmitting = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -38,18 +41,18 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (!mounted) return;
-      ToastService.showSuccess('Login successful');
+      ToastService.showSuccess('Welcome back!');
+
+      
       Navigator.of(context).pushReplacementNamed(
-        result.user.isAdmin ? AppRouter.adminHome : AppRouter.clientHome,
+        result.user.isAdmin ? AppRouter.admin : AppRouter.client,
       );
     } catch (e) {
       if (!mounted) return;
       final errorMsg = e.toString().replaceFirst('Exception: ', '');
       ToastService.showError(errorMsg);
     } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -119,13 +122,14 @@ class _LoginPageState extends State<LoginPage> {
                             key: _formKey,
                             child: Column(
                               children: [
+                                // ── Email ──────────────────────
                                 TextFormField(
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
                                   decoration: const InputDecoration(
                                     labelText: 'Email',
                                     prefixIcon: Icon(
-                                      Icons.email,
+                                      Icons.email_outlined,
                                       color: AppColors.secondary,
                                     ),
                                   ),
@@ -140,14 +144,29 @@ class _LoginPageState extends State<LoginPage> {
                                   },
                                 ),
                                 const SizedBox(height: 16),
+
+                                // ── Password ───────────────────
                                 TextFormField(
                                   controller: _passwordController,
-                                  obscureText: true,
-                                  decoration: const InputDecoration(
+                                  obscureText: _obscurePassword,
+                                  decoration: InputDecoration(
                                     labelText: 'Password',
-                                    prefixIcon: Icon(
-                                      Icons.lock,
+                                    prefixIcon: const Icon(
+                                      Icons.lock_outline,
                                       color: AppColors.secondary,
+                                    ),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_outlined
+                                            : Icons.visibility_off_outlined,
+                                        color: AppColors.textMuted,
+                                        size: 20,
+                                      ),
+                                      onPressed: () => setState(
+                                        () => _obscurePassword =
+                                            !_obscurePassword,
+                                      ),
                                     ),
                                   ),
                                   validator: (value) =>
@@ -156,29 +175,19 @@ class _LoginPageState extends State<LoginPage> {
                                       : null,
                                 ),
                                 const SizedBox(height: 24),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 48,
-                                  child: FilledButton(
-                                    onPressed: _isSubmitting
-                                        ? null
-                                        : _onLoginPressed,
-                                    child: _isSubmitting
-                                        ? const SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    AppColors.surface,
-                                                  ),
-                                            ),
-                                          )
-                                        : const Text('Login'),
-                                  ),
+
+                                // ── Submit ─────────────────────
+                                AppButton.primary(
+                                  label: 'Login',
+                                  expand: true,
+                                  isLoading: _isSubmitting,
+                                  onPressed: _isSubmitting
+                                      ? null
+                                      : _onLoginPressed,
                                 ),
                                 const SizedBox(height: 16),
+
+                                // ── Sign up link ───────────────
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -189,11 +198,9 @@ class _LoginPageState extends State<LoginPage> {
                                       ).textTheme.bodyMedium,
                                     ),
                                     TextButton(
-                                      onPressed: () {
-                                        Navigator.of(
-                                          context,
-                                        ).pushNamed(AppRouter.signup);
-                                      },
+                                      onPressed: () => Navigator.of(
+                                        context,
+                                      ).pushNamed(AppRouter.signup),
                                       child: const Text('Sign up'),
                                     ),
                                   ],

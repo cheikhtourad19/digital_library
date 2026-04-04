@@ -1,3 +1,4 @@
+import 'package:digital_library/ui/components/buttons/app_button.dart';
 import 'package:flutter/material.dart';
 import '../../../core/utils/app_colors.dart';
 import '../../../models/menu_model.dart';
@@ -49,19 +50,21 @@ class _AppSidebarState extends State<AppSidebar>
   void _showLogoutConfirmation() {
     showAppModal(
       context: context,
+
       title: 'Confirm Logout',
       content: const Text('Are you sure you want to log out?'),
       actions: [
-        TextButton(
+        AppButton.secondary(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          label: 'Cancel',
         ),
-        FilledButton(
+        AppButton.danger(
           onPressed: () {
             Navigator.of(context).pop();
             widget.onLogout();
           },
-          child: const Text('Logout'),
+          label: 'Logout',
+          icon: Icons.logout,
         ),
       ],
     );

@@ -1,3 +1,4 @@
+import 'package:digital_library/ui/components/buttons/app_button.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/navigation/app_router.dart';
@@ -42,7 +43,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
       if (!mounted) return;
       ToastService.showSuccess('Account created successfully');
-      Navigator.of(context).pushReplacementNamed(AppRouter.clientHome);
+      Navigator.of(context).pushReplacementNamed(AppRouter.client);
     } catch (e) {
       if (!mounted) return;
       final errorMsg = e.toString().replaceFirst('Exception: ', '');
@@ -177,27 +178,11 @@ class _SignUpPageState extends State<SignUpPage> {
                                   },
                                 ),
                                 const SizedBox(height: 24),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 48,
-                                  child: FilledButton(
-                                    onPressed: _isSubmitting
-                                        ? null
-                                        : _onSignUpPressed,
-                                    child: _isSubmitting
-                                        ? const SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    AppColors.surface,
-                                                  ),
-                                            ),
-                                          )
-                                        : const Text('Sign Up'),
-                                  ),
+                                AppButton.secondary(
+                                  label: 'Sign Up',
+                                  expand: true,
+                                  isLoading: _isSubmitting,
+                                  onPressed: _onSignUpPressed,
                                 ),
                                 const SizedBox(height: 16),
                                 Row(

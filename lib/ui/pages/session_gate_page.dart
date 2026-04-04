@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/navigation/app_router.dart';
 import '../../service/auth_service.dart';
+import '../../core/utils/app_colors.dart';
 
 class SessionGatePage extends StatefulWidget {
   const SessionGatePage({super.key});
@@ -15,19 +16,14 @@ class _SessionGatePageState extends State<SessionGatePage> {
   bool _didRedirect = false;
 
   Future<String> _resolveStartRoute() async {
-    final token = await _authService.getSessionToken();
+    // ✅ checks both token existence and expiry
+    final isValid = await _authService.isSessionValid();
 
-    if (token == null || token.isEmpty) {
-      return AppRouter.login;
-    }
+    if (!isValid) return AppRouter.login;
 
     final role = await _authService.getUserRole();
 
-    if (role == UserRole.admin) {
-      return AppRouter.adminHome;
-    }
-
-    return AppRouter.clientHome;
+    return role == UserRole.admin ? AppRouter.admin : AppRouter.client;
   }
 
   Future<void> _redirect() async {
@@ -40,9 +36,6 @@ class _SessionGatePageState extends State<SessionGatePage> {
       Navigator.of(context).pushReplacementNamed(route);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Session check failed: $error')));
       Navigator.of(context).pushReplacementNamed(AppRouter.login);
     }
   }
@@ -55,6 +48,11 @@ class _SessionGatePageState extends State<SessionGatePage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return const Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: CircularProgressIndicator(color: AppColors.secondary),
+      ),
+    );
   }
 }

@@ -1,3 +1,5 @@
+import 'package:digital_library/models/user_model.dart';
+import 'package:digital_library/ui/pages/admin/admin_user_detail_page.dart';
 import 'package:flutter/material.dart';
 
 import '../../ui/pages/admin/admin_layout.dart';
@@ -7,86 +9,52 @@ import '../../ui/pages/session_gate_page.dart';
 import '../../ui/pages/signup_page.dart';
 
 class AppRouter {
+  // ── Layer 1 — Auth ────────────────────────────────────────────
   static const String sessionGate = '/';
   static const String login = '/login';
   static const String signup = '/signup';
-  static const String clientHome = '/client/home';
-  static const String clientBooks = '/client/books';
-  static const String clientFavorites = '/client/favorites';
-  static const String clientProfile = '/client/profile';
-  static const String adminHome = '/admin/home';
-  static const String adminAnalytics = '/admin/analytics';
-  static const String adminBooks = '/admin/books';
-  static const String adminUsers = '/admin/users';
-  static const String adminSettings = '/admin/settings';
+
+  // ── Layer 2 — Shells (single entry per role) ──────────────────
+  static const String client = '/client';
+  static const String admin = '/admin';
+
+  // ── Layer 3 — Detail pages (push on top of shell) ─────────────
+  // static const String bookDetail = '/book/detail';
+  // static const String authorDetail = '/author/detail';
+  static const String adminUserDetailPage = '/admin/user/detail';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case sessionGate:
-        return MaterialPageRoute(
-          builder: (_) => const SessionGatePage(),
-          settings: settings,
-        );
+        return _route(const SessionGatePage(), settings);
+
       case login:
-        return MaterialPageRoute(
-          builder: (_) => const LoginPage(),
-          settings: settings,
-        );
+        return _route(const LoginPage(), settings);
+
       case signup:
-        return MaterialPageRoute(
-          builder: (_) => const SignUpPage(),
-          settings: settings,
-        );
-      case clientHome:
-        return MaterialPageRoute(
-          builder: (_) => const ClientLayout(initialIndex: 0),
-          settings: settings,
-        );
-      case clientBooks:
-        return MaterialPageRoute(
-          builder: (_) => const ClientLayout(initialIndex: 1),
-          settings: settings,
-        );
-      case clientFavorites:
-        return MaterialPageRoute(
-          builder: (_) => const ClientLayout(initialIndex: 2),
-          settings: settings,
-        );
-      case clientProfile:
-        return MaterialPageRoute(
-          builder: (_) => const ClientLayout(initialIndex: 3),
-          settings: settings,
-        );
-      case adminHome:
-        return MaterialPageRoute(
-          builder: (_) => const AdminLayout(initialIndex: 0),
-          settings: settings,
-        );
-      case adminAnalytics:
-        return MaterialPageRoute(
-          builder: (_) => const AdminLayout(initialIndex: 1),
-          settings: settings,
-        );
-      case adminBooks:
-        return MaterialPageRoute(
-          builder: (_) => const AdminLayout(initialIndex: 2),
-          settings: settings,
-        );
-      case adminUsers:
-        return MaterialPageRoute(
-          builder: (_) => const AdminLayout(initialIndex: 3),
-          settings: settings,
-        );
-      case adminSettings:
-        return MaterialPageRoute(
-          builder: (_) => const AdminLayout(initialIndex: 4),
-          settings: settings,
-        );
+        return _route(const SignUpPage(), settings);
+
+      case client:
+        return _route(const ClientLayout(), settings);
+
+      case admin:
+        return _route(const AdminLayout(), settings);
+
+      // Layer 3 detail pages go here when needed:
+      // case bookDetail:
+      //   final book = settings.arguments as BookModel;
+      //   return _route(BookDetailPage(book: book), settings);
+
+      case adminUserDetailPage:
+        final user = settings.arguments as User;
+        return _route(AdminUserDetailPage(user: user), settings);
+
       default:
-        return MaterialPageRoute(
-          builder: (_) => const SessionGatePage(),
-          settings: settings,
-        );
+        return _route(const SessionGatePage(), settings);
     }
+  }
+
+  static MaterialPageRoute _route(Widget page, RouteSettings settings) {
+    return MaterialPageRoute(builder: (_) => page, settings: settings);
   }
 }

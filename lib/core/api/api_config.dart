@@ -24,4 +24,7 @@ class ApiConfig {
 
   // ── Users ─────────────────────────────────────────────
   static const String usersEndpoint = '/users';
+  static const String userDetailEndpoint = '$usersEndpoint/me';
+  static String userDetailEndpointForAdminById(String id) => '$usersEndpoint/$id';
+  
 }

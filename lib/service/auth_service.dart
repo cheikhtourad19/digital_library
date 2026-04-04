@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../models/user_model.dart';
@@ -12,6 +14,37 @@ class AuthService {
   AuthService({AuthApiService? apiService, FlutterSecureStorage? secureStorage})
     : _apiService = apiService ?? AuthApiService(),
       _secureStorage = secureStorage ?? const FlutterSecureStorage();
+
+  // ── Session ───────────────────────────────────────────────────
+
+  Future<bool> isSessionValid() async {
+    final token = await getSessionToken();
+    if (token == null || token.isEmpty) return false;
+    return !(await isTokenExpired());
+  }
+
+  Future<bool> isTokenExpired() async {
+    try {
+      final token = await getSessionToken();
+      if (token == null) return true;
+
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+
+      final payload = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+      );
+
+      final exp = payload['exp'] as int?;
+      if (exp == null) return false;
+
+      return DateTime.now().isAfter(
+        DateTime.fromMillisecondsSinceEpoch(exp * 1000),
+      );
+    } catch (e) {
+      return true;
+    }
+  }
 
   Future<String?> getSessionToken() async {
     try {
@@ -35,26 +68,20 @@ class AuthService {
     try {
       final userJson = await _secureStorage.read(key: 'user_data');
       if (userJson == null) return null;
-      // In production, parse JSON properly
-      return null;
+      return User.fromJson(jsonDecode(userJson));
     } catch (e) {
       return null;
     }
   }
+
+  // ── Auth actions ──────────────────────────────────────────────
 
   Future<({String token, User user})> login({
     required String email,
     required String password,
   }) async {
     final result = await _apiService.login(email: email, password: password);
-
-    // Store token and role securely
-    await _secureStorage.write(key: 'auth_token', value: result.token);
-    await _secureStorage.write(
-      key: 'user_role',
-      value: result.user.isAdmin ? 'admin' : 'client',
-    );
-
+    await _saveSession(result.token, result.user);
     return result;
   }
 
@@ -68,20 +95,25 @@ class AuthService {
       email: email,
       password: password,
     );
-
-    // Store token and role securely
-    await _secureStorage.write(key: 'auth_token', value: result.token);
-    await _secureStorage.write(
-      key: 'user_role',
-      value: result.user.isAdmin ? 'admin' : 'client',
-    );
-
+    await _saveSession(result.token, result.user);
     return result;
   }
 
   Future<void> logout() async {
-    await _secureStorage.delete(key: 'auth_token');
-    await _secureStorage.delete(key: 'user_role');
-    await _secureStorage.delete(key: 'user_data');
+    await _secureStorage.deleteAll();
+  }
+
+  // ── Private ───────────────────────────────────────────────────
+
+  Future<void> _saveSession(String token, User user) async {
+    await _secureStorage.write(key: 'auth_token', value: token);
+    await _secureStorage.write(
+      key: 'user_role',
+      value: user.isAdmin ? 'admin' : 'client',
+    );
+    await _secureStorage.write(
+      key: 'user_data',
+      value: jsonEncode(user.toJson()),
+    );
   }
 }
