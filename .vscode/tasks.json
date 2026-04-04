@@ -1,0 +1,27 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run on elghoth device",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"run",
+				"-d",
+				"elghoth"
+			],
+			"isBackground": true
+		},
+		{
+			"label": "Run on Elghoth device",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"run",
+				"-d",
+				"elghoth"
+			],
+			"isBackground": true
+		}
+	]
+}
