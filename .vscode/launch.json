@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter Release on Elghoth",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "deviceId": "elghoth"
+    }
+  ]
+}
