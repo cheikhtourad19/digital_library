@@ -24,8 +24,10 @@
 | Asset        | Path                         | Used In                    |
 | ------------ | ---------------------------- | -------------------------- |
 | App Logo PNG | `assets/images/app_logo.png` | Login + Signup header logo |
+| App Icon PNG | `assets/images/app_logo.png` | Android/iOS launcher icon  |
 
 > If the logo changes, replace the same file name/path to avoid breaking references.
+> Launcher icon generation is configured in `pubspec.yaml` via flutter_launcher_icons.
 
 ---
 
