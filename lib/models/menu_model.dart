@@ -61,7 +61,7 @@ class MenuConfig {
       MenuSection(
         title: 'Account',
         items: [
-          MenuItem(label: 'Settings', icon: Icons.settings, pageIndex: 4),
+          MenuItem(label: 'Profile', icon: Icons.person, pageIndex: 4),
           MenuItem(label: 'Logout', icon: Icons.logout, isLogout: true),
         ],
       ),

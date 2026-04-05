@@ -1,4 +1,5 @@
 import 'package:digital_library/core/di/injection.dart';
+import 'package:digital_library/ui/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/navigation/app_router.dart';
@@ -8,7 +9,6 @@ import '../../components/navigation/app_sidebar.dart';
 import 'client_books_page.dart';
 import 'client_favorites_page.dart';
 import 'client_home_page.dart';
-import 'client_profile_page.dart';
 
 class ClientLayout extends StatefulWidget {
   final int initialIndex;
@@ -27,7 +27,7 @@ class _ClientLayoutState extends State<ClientLayout> {
     ClientHomePage(),
     ClientBooksPage(),
     ClientFavoritesPage(),
-    ClientProfilePage(),
+    ProfilePage(),
   ];
 
   final List<String> _titles = const [

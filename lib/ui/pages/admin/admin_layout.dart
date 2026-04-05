@@ -1,3 +1,4 @@
+import 'package:digital_library/ui/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:digital_library/core/di/injection.dart';
 
@@ -8,7 +9,6 @@ import '../../components/navigation/app_sidebar.dart';
 import 'admin_analytics_page.dart';
 import 'admin_books_page.dart';
 import 'admin_home_page.dart';
-import 'admin_settings_page.dart';
 import 'admin_users_page.dart';
 
 class AdminLayout extends StatefulWidget {
@@ -29,7 +29,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     AdminAnalyticsPage(),
     AdminBooksPage(),
     AdminUsersPage(),
-    AdminSettingsPage(),
+    ProfilePage(),
   ];
 
   final List<String> _titles = const [
@@ -37,7 +37,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     'Analytics',
     'Books',
     'Users',
-    'Settings',
+    'Profile',
   ];
 
   @override

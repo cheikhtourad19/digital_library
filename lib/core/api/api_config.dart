@@ -18,6 +18,7 @@ class ApiConfig {
   static const String authEndpoint = '/auth';
   static const String signupEndpoint = '$authEndpoint/signup';
   static const String loginEndpoint = '$authEndpoint/login';
+  static const String editPasswordEndpoint = '$authEndpoint/edit-password';
 
   // ── Books ─────────────────────────────────────────────
   static const String booksEndpoint = '/books';
@@ -25,6 +26,7 @@ class ApiConfig {
   // ── Users ─────────────────────────────────────────────
   static const String usersEndpoint = '/users';
   static const String userDetailEndpoint = '$usersEndpoint/me';
-  static String userDetailEndpointForAdminById(String id) => '$usersEndpoint/$id';
-  
+  static String userDetailEndpointForAdminById(String id) =>
+      '$usersEndpoint/$id';
+  static const String editInfoEndpoint = '$usersEndpoint/me';
 }

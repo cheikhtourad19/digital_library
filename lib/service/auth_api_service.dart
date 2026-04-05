@@ -70,7 +70,6 @@ class AuthApiService {
           'nom': fullName,
           'email': email,
           'motDePasse': password,
-          // Compatibility for backends expecting English key names.
           'password': password,
         },
         options: Options(extra: {'requiresAuth': false}),
@@ -103,12 +102,7 @@ class AuthApiService {
     try {
       final response = await _dioClient.dio.post(
         ApiConfig.loginEndpoint,
-        data: {
-          'email': email,
-          'motDePasse': password,
-          // Compatibility for backends expecting English key names.
-          'password': password,
-        },
+        data: {'email': email, 'motDePasse': password, 'password': password},
         options: Options(extra: {'requiresAuth': false}),
       );
 
@@ -130,5 +124,24 @@ class AuthApiService {
     } catch (e) {
       throw Exception('Login error: $e');
     }
+  }
+
+  Future<({String message})> editPassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final response = await _dioClient.dio.put(
+      ApiConfig.editPasswordEndpoint,
+      data: {'currentPassword': currentPassword, 'newPassword': newPassword},
+      options: Options(extra: {'requiresAuth': true}),
+    );
+
+    final data = response.data as Map<String, dynamic>;
+
+    return (
+      message:
+          (data['msg'] ?? data['message'] ?? 'Password updated successfully')
+              .toString(),
+    );
   }
 }

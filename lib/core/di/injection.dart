@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../network/dio_client.dart';
 import '../../service/auth_api_service.dart';
 import '../../service/user_service.dart';
+import '../../service/auth_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -18,17 +19,22 @@ Future<void> setupDependencies() async {
   final prefs = await SharedPreferences.getInstance();
   getIt.registerSingleton<SharedPreferences>(prefs);
 
-  
   getIt.registerLazySingleton<DioClient>(
     () => DioClient(secureStorage: getIt<FlutterSecureStorage>()),
   );
 
-  
   getIt.registerLazySingleton<UserService>(
     () => UserService(dioClient: getIt<DioClient>()),
   );
 
   getIt.registerLazySingleton<AuthApiService>(
     () => AuthApiService(dioClient: getIt<DioClient>()),
+  );
+
+  getIt.registerLazySingleton<AuthService>(
+    () => AuthService(
+      apiService: getIt<AuthApiService>(),
+      secureStorage: getIt<FlutterSecureStorage>(),
+    ),
   );
 }

@@ -13,12 +13,6 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final isPublic = options.extra['requiresAuth'] == false;
-    if (isPublic) {
-      options.headers.remove('Authorization');
-      return handler.next(options);
-    }
-
     final token = await _storage.read(key: 'access_token');
 
     if (token != null && !JwtDecoder.isExpired(token)) {

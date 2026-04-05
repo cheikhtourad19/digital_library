@@ -1,7 +1,10 @@
 import 'package:digital_library/ui/components/buttons/app_button.dart';
 import 'package:flutter/material.dart';
+import '../../../core/di/injection.dart';
 import '../../../core/utils/app_colors.dart';
 import '../../../models/menu_model.dart';
+import '../../../models/user_model.dart';
+import '../../../service/auth_service.dart';
 import '../modals/app_modal.dart';
 
 class AppSidebar extends StatefulWidget {
@@ -30,6 +33,10 @@ class _AppSidebarState extends State<AppSidebar>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
 
+  final _authService = getIt<AuthService>();
+  User? _currentUser;
+  UserRole? _userRole;
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +46,18 @@ class _AppSidebarState extends State<AppSidebar>
       value: 1.0,
     );
     _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeIn);
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final user = await _authService.getCurrentUser();
+    final role = await _authService.getUserRole();
+    if (mounted) {
+      setState(() {
+        _currentUser = user;
+        _userRole = role;
+      });
+    }
   }
 
   @override
@@ -50,7 +69,6 @@ class _AppSidebarState extends State<AppSidebar>
   void _showLogoutConfirmation() {
     showAppModal(
       context: context,
-
       title: 'Confirm Logout',
       content: const Text('Are you sure you want to log out?'),
       actions: [
@@ -94,10 +112,7 @@ class _AppSidebarState extends State<AppSidebar>
       ),
       child: Column(
         children: [
-          // ── Header ──────────────────────────────────────────
           _buildHeader(),
-
-          // ── Menu sections ────────────────────────────────────
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -112,11 +127,7 @@ class _AppSidebarState extends State<AppSidebar>
                   .toList(),
             ),
           ),
-
-          // ── Footer divider ───────────────────────────────────
           Divider(color: AppColors.border, height: 1),
-          const SizedBox(height: 8),
-
           const SizedBox(height: 16),
         ],
       ),
@@ -124,52 +135,144 @@ class _AppSidebarState extends State<AppSidebar>
   }
 
   Widget _buildHeader() {
+    final roleLabel = _userRole == UserRole.admin ? 'Administrator' : 'Client';
+    final roleColor = _userRole == UserRole.admin
+        ? Colors.amber.shade300
+        : Colors.lightBlue.shade200;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 52, 16, 20),
+      padding: const EdgeInsets.fromLTRB(20, 52, 16, 24),
       decoration: const BoxDecoration(
         gradient: AppColors.primaryGradient,
         borderRadius: BorderRadius.only(topRight: Radius.circular(24)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Logo mark
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.auto_stories_rounded,
-              color: Colors.white,
-              size: 20,
-            ),
+          // ── Logo row ───────────────────────────────────────────
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.auto_stories_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              if (_isExpanded)
+                FadeTransition(
+                  opacity: _fadeAnim,
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Digital Library',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      Text(
+                        'Your reading space',
+                        style: TextStyle(color: Colors.white60, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
-          const SizedBox(width: 12),
-          if (_isExpanded)
+
+          if (_isExpanded) ...[
+            const SizedBox(height: 20),
+
+            // ── Divider ────────────────────────────────────────
+            Divider(color: Colors.white.withOpacity(0.15), height: 1),
+            const SizedBox(height: 16),
+
+            // ── User info ──────────────────────────────────────
             FadeTransition(
               opacity: _fadeAnim,
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    'Digital Library',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.3,
+                  // Avatar
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        _currentUser?.nom.isNotEmpty == true
+                            ? _currentUser!.nom[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ),
-                  Text(
-                    'Your reading space',
-                    style: TextStyle(color: Colors.white60, fontSize: 11),
+                  const SizedBox(width: 12),
+
+                  // Email + Role
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _currentUser?.email ?? '—',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: roleColor.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: roleColor.withOpacity(0.5),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            roleLabel,
+                            style: TextStyle(
+                              color: roleColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
+          ],
         ],
       ),
     );
@@ -253,7 +356,6 @@ class _AppSidebarState extends State<AppSidebar>
                   ),
                 )
               : null,
-          // active indicator bar on the right
           trailing: isSelected && _isExpanded
               ? Container(
                   width: 3,

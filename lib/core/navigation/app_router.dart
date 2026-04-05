@@ -19,8 +19,11 @@ class AppRouter {
   static const String admin = '/admin';
 
   // ── Layer 3 — Detail pages (push on top of shell) ─────────────
-  // static const String bookDetail = '/book/detail';
-  // static const String authorDetail = '/author/detail';
+  /*
+      declari pageat lou5rayn lehna  w 3mlnahom push on top of shell pages 3shan yeb2a feh navigation independent 3lehom
+       haka yweli 3ndna 3 niveaux - auth (login/signup/session gate) - shell (client/admin) - details (book detail/author detail/user detail)
+       
+  */
   static const String adminUserDetailPage = '/admin/user/detail';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -39,11 +42,6 @@ class AppRouter {
 
       case admin:
         return _route(const AdminLayout(), settings);
-
-      // Layer 3 detail pages go here when needed:
-      // case bookDetail:
-      //   final book = settings.arguments as BookModel;
-      //   return _route(BookDetailPage(book: book), settings);
 
       case adminUserDetailPage:
         final user = settings.arguments as User;

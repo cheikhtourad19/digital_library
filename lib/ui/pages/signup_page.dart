@@ -1,11 +1,12 @@
 import 'package:digital_library/core/di/injection.dart';
-import 'package:digital_library/ui/components/buttons/app_button.dart';
 import 'package:flutter/material.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 
 import '../../core/navigation/app_router.dart';
 import '../../core/utils/app_colors.dart';
 import '../../core/utils/toast_service.dart';
 import '../../service/auth_service.dart';
+import '../components/forms/sign_up_form.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -15,31 +16,41 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
   final _authService = getIt<AuthService>();
   bool _isSubmitting = false;
 
+  final _form = FormGroup({
+    'fullName': FormControl<String>(
+      validators: [Validators.required],
+    ),
+    'email': FormControl<String>(
+      validators: [Validators.required, Validators.email],
+    ),
+    'password': FormControl<String>(
+      validators: [Validators.required, Validators.minLength(6)],
+    ),
+  });
+
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
+    _form.dispose();
     super.dispose();
   }
 
   Future<void> _onSignUpPressed() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_form.invalid) {
+      _form.markAllAsTouched();
+      return;
+    }
 
     setState(() => _isSubmitting = true);
 
     try {
       await _authService.signUp(
-        fullName: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+        fullName:
+            (_form.control('fullName') as FormControl<String>).value!.trim(),
+        email: (_form.control('email') as FormControl<String>).value!.trim(),
+        password: (_form.control('password') as FormControl<String>).value!,
       );
 
       if (!mounted) return;
@@ -47,12 +58,9 @@ class _SignUpPageState extends State<SignUpPage> {
       Navigator.of(context).pushReplacementNamed(AppRouter.client);
     } catch (e) {
       if (!mounted) return;
-      final errorMsg = e.toString().replaceFirst('Exception: ', '');
-      ToastService.showError(errorMsg);
+      ToastService.showError(e.toString().replaceFirst('Exception: ', ''));
     } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -108,105 +116,24 @@ class _SignUpPageState extends State<SignUpPage> {
                           const SizedBox(height: 20),
                           Text(
                             'Digital Library',
-                            style: Theme.of(context).textTheme.headlineSmall
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Create your account',
-                            style: Theme.of(context).textTheme.bodyMedium
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
                                 ?.copyWith(color: AppColors.textMuted),
                           ),
                           const SizedBox(height: 28),
-                          Form(
-                            key: _formKey,
-                            child: Column(
-                              children: [
-                                TextFormField(
-                                  controller: _nameController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Full Name',
-                                    prefixIcon: Icon(
-                                      Icons.person,
-                                      color: AppColors.secondary,
-                                    ),
-                                  ),
-                                  validator: (value) =>
-                                      (value == null || value.trim().isEmpty)
-                                      ? 'Name is required'
-                                      : null,
-                                ),
-                                const SizedBox(height: 16),
-                                TextFormField(
-                                  controller: _emailController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Email',
-                                    prefixIcon: Icon(
-                                      Icons.email,
-                                      color: AppColors.secondary,
-                                    ),
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Email is required';
-                                    }
-                                    if (!value.contains('@')) {
-                                      return 'Please enter a valid email';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-                                TextFormField(
-                                  controller: _passwordController,
-                                  obscureText: true,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Password',
-                                    prefixIcon: Icon(
-                                      Icons.lock,
-                                      color: AppColors.secondary,
-                                    ),
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Password is required';
-                                    }
-                                    if (value.length < 6) {
-                                      return 'Password must be at least 6 characters';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 24),
-                                AppButton.secondary(
-                                  label: 'Sign Up',
-                                  expand: true,
-                                  isLoading: _isSubmitting,
-                                  onPressed: _onSignUpPressed,
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Already have an account? ',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(
-                                          context,
-                                        ).popAndPushNamed(AppRouter.login);
-                                      },
-                                      child: const Text('Login'),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                          SignUpForm(
+                            form: _form,
+                            isSubmitting: _isSubmitting,
+                            onSubmit: _onSignUpPressed,
                           ),
                         ],
                       ),

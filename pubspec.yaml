@@ -35,6 +35,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   sqflite: ^2.3.0
+  reactive_forms: ^18.2.2
   dio: any
   path: ^1.9.0
   flutter_pdfview: any
