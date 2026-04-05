@@ -1,3 +1,4 @@
+import 'package:digital_library/core/di/injection.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/navigation/app_router.dart';
@@ -20,6 +21,7 @@ class ClientLayout extends StatefulWidget {
 
 class _ClientLayoutState extends State<ClientLayout> {
   late int _selectedIndex;
+  final _authService = getIt<AuthService>();
 
   final List<Widget> _pages = const [
     ClientHomePage(),
@@ -46,7 +48,7 @@ class _ClientLayoutState extends State<ClientLayout> {
   }
 
   Future<void> _onLogout() async {
-    await AuthService().logout();
+    await _authService.logout();
     if (!mounted) return;
     Navigator.of(
       context,

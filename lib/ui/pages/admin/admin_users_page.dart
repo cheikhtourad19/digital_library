@@ -1,3 +1,4 @@
+import 'package:digital_library/core/di/injection.dart';
 import 'package:digital_library/service/user_service.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +18,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   bool _isLoading = false;
   final _searchController = TextEditingController();
   String _searchQuery = '';
-  final UserService _userService = UserService();
+  final UserService _userService = getIt<UserService>();
   List<User> _users = [];
   Future<void> loadUsers() async {
     setState(() {
@@ -87,13 +88,13 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 child: AppTable<User>(
                   title: 'All Users',
                   trailing: _buildSearchBar(),
-                  columns: const ['User', 'Email', 'Role', 'Actions'],
+                  columns: const ['User', 'Role', 'Actions'],
                   rows: _filtered,
                   isLoading: _isLoading,
                   emptyMessage: 'No users found',
                   rowBuilder: (user) => [
                     AppTableCell.avatar(user.nom, subtitle: user.email),
-                    AppTableCell.text(user.email),
+
                     AppTableCell.badge(
                       user.isAdmin ? 'Admin' : 'Client',
                       color: user.isAdmin

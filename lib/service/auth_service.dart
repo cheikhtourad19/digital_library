@@ -11,9 +11,12 @@ class AuthService {
   final AuthApiService _apiService;
   final FlutterSecureStorage _secureStorage;
 
-  AuthService({AuthApiService? apiService, FlutterSecureStorage? secureStorage})
-    : _apiService = apiService ?? AuthApiService(),
-      _secureStorage = secureStorage ?? const FlutterSecureStorage();
+  
+  AuthService({
+    required AuthApiService apiService,
+    required FlutterSecureStorage secureStorage,
+  }) : _apiService = apiService,
+       _secureStorage = secureStorage;
 
   // ── Session ───────────────────────────────────────────────────
 
@@ -41,15 +44,15 @@ class AuthService {
       return DateTime.now().isAfter(
         DateTime.fromMillisecondsSinceEpoch(exp * 1000),
       );
-    } catch (e) {
+    } catch (_) {
       return true;
     }
   }
 
   Future<String?> getSessionToken() async {
     try {
-      return await _secureStorage.read(key: 'auth_token');
-    } catch (e) {
+      return await _secureStorage.read(key: 'access_token');
+    } catch (_) {
       return null;
     }
   }
@@ -59,7 +62,7 @@ class AuthService {
       final roleStr = await _secureStorage.read(key: 'user_role');
       if (roleStr == null) return null;
       return roleStr == 'admin' ? UserRole.admin : UserRole.client;
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -69,12 +72,11 @@ class AuthService {
       final userJson = await _secureStorage.read(key: 'user_data');
       if (userJson == null) return null;
       return User.fromJson(jsonDecode(userJson));
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
 
-  // ── Auth actions ──────────────────────────────────────────────
 
   Future<({String token, User user})> login({
     required String email,
@@ -103,10 +105,9 @@ class AuthService {
     await _secureStorage.deleteAll();
   }
 
-  // ── Private ───────────────────────────────────────────────────
 
   Future<void> _saveSession(String token, User user) async {
-    await _secureStorage.write(key: 'auth_token', value: token);
+    await _secureStorage.write(key: 'access_token', value: token);
     await _secureStorage.write(
       key: 'user_role',
       value: user.isAdmin ? 'admin' : 'client',

@@ -1,3 +1,4 @@
+import 'package:digital_library/core/di/injection.dart';
 import 'package:digital_library/ui/components/buttons/app_button.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final _authService = AuthService();
+  final _authService = getIt<AuthService>();
 
   bool _isSubmitting = false;
   bool _obscurePassword = true;

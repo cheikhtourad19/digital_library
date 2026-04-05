@@ -7,8 +7,7 @@ import '../../models/user_model.dart';
 class AuthApiService {
   final DioClient _dioClient;
 
-  AuthApiService({DioClient? dioClient})
-    : _dioClient = dioClient ?? DioClient();
+  AuthApiService({required DioClient dioClient}) : _dioClient = dioClient;
 
   ({String token, User user}) _parseAuthResponse(
     dynamic data, {

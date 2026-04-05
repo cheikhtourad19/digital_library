@@ -1,3 +1,4 @@
+import 'package:digital_library/core/di/injection.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/navigation/app_router.dart';
@@ -12,7 +13,7 @@ class SessionGatePage extends StatefulWidget {
 }
 
 class _SessionGatePageState extends State<SessionGatePage> {
-  final AuthService _authService = AuthService();
+  final AuthService _authService = getIt<AuthService>();
   bool _didRedirect = false;
 
   Future<String> _resolveStartRoute() async {

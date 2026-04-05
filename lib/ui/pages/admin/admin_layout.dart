@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:digital_library/core/di/injection.dart';
 
 import '../../../core/navigation/app_router.dart';
 import '../../../models/menu_model.dart';
@@ -21,6 +22,7 @@ class AdminLayout extends StatefulWidget {
 
 class _AdminLayoutState extends State<AdminLayout> {
   late int _selectedIndex;
+  final _authService = getIt<AuthService>();
 
   final List<Widget> _pages = const [
     AdminHomePage(),
@@ -49,7 +51,7 @@ class _AdminLayoutState extends State<AdminLayout> {
   }
 
   Future<void> _onLogout() async {
-    await AuthService().logout();
+    await _authService.logout();
     if (!mounted) return;
     Navigator.of(
       context,
