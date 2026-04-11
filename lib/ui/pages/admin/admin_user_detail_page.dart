@@ -1,7 +1,12 @@
+import 'package:digital_library/core/di/injection.dart';
+import 'package:digital_library/core/navigation/app_router.dart';
+import 'package:digital_library/service/user_service.dart';
+import 'package:digital_library/ui/components/buttons/app_button.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/app_colors.dart';
 import '../../../models/user_model.dart';
+import '../../components/modals/app_modal.dart';
 
 class AdminUserDetailPage extends StatelessWidget {
   final User user;
@@ -51,9 +56,49 @@ class AdminUserDetailPage extends StatelessWidget {
 
             // ── Info section ─────────────────────────────────
             _buildInfoSection(),
+            const SizedBox(height: 20),
+            _buildActionButtonsRow(context),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildActionButtonsRow(BuildContext context) {
+    return Row(
+      children: [
+        AppButton.danger(
+          label: "delete",
+          onPressed: () {
+            final _userService = getIt<UserService>();
+            showAppModal(
+              context: context,
+              title: 'Confirm deletion',
+              content: const Text('Are you sure you want to delete this user?'),
+              actions: [
+                AppButton.secondary(
+                  onPressed: () => Navigator.of(context).pop(),
+                  label: 'Cancel',
+                ),
+                AppButton.danger(
+                  onPressed: () async {
+                    await _userService.deleteUser(this.user.id);
+                    Navigator.of(context).pop(); // close modal
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      AppRouter.admin,
+                      (route) => false, // removes everything
+                      arguments: {'initialIndex': 3},
+                    );
+                  },
+                  label: 'delete',
+                  icon: Icons.delete,
+                ),
+              ],
+            );
+          },
+        ),
+        AppButton.secondary(label: "deactivate account ", onPressed: () {}),
+      ],
     );
   }
 
@@ -183,7 +228,7 @@ class AdminUserDetailPage extends StatelessWidget {
           Divider(height: 1, color: AppColors.border),
           _buildInfoRow('Role', user.isAdmin ? 'Administrator' : 'Client'),
           Divider(height: 1, color: AppColors.border),
-          _buildInfoRow('Status', 'Active'), // replace with real field
+          _buildInfoRow('Status', 'Active'),
         ],
       ),
     );

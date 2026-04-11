@@ -1,5 +1,8 @@
 import 'package:digital_library/models/user_model.dart';
+import 'package:digital_library/ui/pages/admin/admin_book_detail_page.dart';
+import 'package:digital_library/ui/pages/admin/admin_create_book_page.dart';
 import 'package:digital_library/ui/pages/admin/admin_user_detail_page.dart';
+import 'package:digital_library/ui/pages/client/client_cart_page.dart';
 import 'package:flutter/material.dart';
 
 import '../../ui/pages/admin/admin_layout.dart';
@@ -25,6 +28,9 @@ class AppRouter {
        
   */
   static const String adminUserDetailPage = '/admin/user/detail';
+  static const String adminCreateBookPage = '/admin/book/create';
+  static const String adminBookDetailPage = '/admin/book/detail';
+  static const String clientCartPage = '/client/cart';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -38,15 +44,25 @@ class AppRouter {
         return _route(const SignUpPage(), settings);
 
       case client:
-        return _route(const ClientLayout(), settings);
+        final args = settings.arguments as Map<String, dynamic>?;
+        final initialIndex = args?['initialIndex'] as int? ?? 0;
+        return _route(ClientLayout(initialIndex: initialIndex), settings);
 
       case admin:
-        return _route(const AdminLayout(), settings);
+        final args = settings.arguments as Map<String, dynamic>?;
+        final initialIndex = args?['initialIndex'] as int? ?? 0;
+        return _route(AdminLayout(initialIndex: initialIndex), settings);
 
       case adminUserDetailPage:
         final user = settings.arguments as User;
         return _route(AdminUserDetailPage(user: user), settings);
-
+      case adminCreateBookPage:
+        return _route(const AdminCreateBookPage(), settings);
+      case adminBookDetailPage:
+        final livreId = settings.arguments as String;
+        return _route(AdminBookDetailPage(livreId: livreId), settings);
+      case clientCartPage:
+        return _route(ClientCartPage(), settings);
       default:
         return _route(const SessionGatePage(), settings);
     }

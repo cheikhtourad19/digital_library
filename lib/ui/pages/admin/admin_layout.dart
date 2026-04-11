@@ -5,6 +5,7 @@ import 'package:digital_library/core/di/injection.dart';
 import '../../../core/navigation/app_router.dart';
 import '../../../models/menu_model.dart';
 import '../../../service/auth_service.dart';
+import '../../components/navigation/library_app_bar.dart';
 import '../../components/navigation/app_sidebar.dart';
 import 'admin_analytics_page.dart';
 import 'admin_books_page.dart';
@@ -61,7 +62,7 @@ class _AdminLayoutState extends State<AdminLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_titles[_selectedIndex])),
+      appBar: LibraryAppBar(title: _titles[_selectedIndex], isAdmin: true),
       drawer: AppSidebar(
         menus: MenuConfig.getAdminMenus(),
         selectedIndex: _selectedIndex,

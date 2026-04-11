@@ -39,6 +39,7 @@ dependencies:
   dio: any
   path: ^1.9.0
   flutter_pdfview: any
+  file_picker: ^10.2.0
   get_it: ^7.7.0
   jwt_decoder: ^2.0.1
 

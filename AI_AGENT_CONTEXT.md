@@ -36,6 +36,8 @@
 ```
 lib/
 ├── core/
+│   ├── api/
+│   │   └── api_config.dart         # Base URL + endpoint constants
 │   ├── utils/
 │   │   ├── app_colors.dart         # All color constants + gradients
 │   │   ├── toast_types.dart        # ToastType enum & per-type styling
@@ -44,6 +46,7 @@ lib/
 │   │   └── app_router.dart         # Named route definitions
 │   ├── database/
 │   ├── network/
+│   │   └── dio_client.dart         # Shared Dio wrapper + interceptors
 │   └── di/
 ├── ui/
 │   ├── theme/
@@ -54,7 +57,8 @@ lib/
 │   │   ├── modals/
 │   │   │   └── app_modal.dart      # Reusable dialog + showAppModal()
 │   │   └── navigation/
-│   │       └── app_sidebar.dart    # Role-based collapsible sidebar
+│   │       ├── app_sidebar.dart     # Role-based collapsible sidebar
+│   │       └── library_app_bar.dart # Shared app bar (admin/client)
 │   └── pages/
 │       ├── session_gate_page.dart
 │       ├── login_page.dart
@@ -64,21 +68,31 @@ lib/
 │       │   ├── client_home_page.dart
 │       │   ├── client_books_page.dart
 │       │   ├── client_favorites_page.dart
-│       │   └── client_profile_page.dart
+│       │   └── client_cart_page.dart
 │       └── admin/
 │           ├── admin_layout.dart
 │           ├── admin_home_page.dart
 │           ├── admin_analytics_page.dart
 │           ├── admin_books_page.dart
+│           ├── admin_create_book_page.dart
+│           ├── admin_book_detail_page.dart
 │           ├── admin_users_page.dart
-│           └── admin_settings_page.dart
+│           └── admin_user_detail_page.dart
 ├── models/
-│   ├── user_model.dart
-│   └── menu_model.dart
+│   ├── avis_model.dart
+│   ├── categorie_model.dart
+│   ├── commande_model.dart
+│   ├── lecture_model.dart
+│   ├── ligne_commande_model.dart
+│   ├── livre_model.dart
+│   ├── menu_model.dart
+│   └── user_model.dart
 ├── service/
-│   ├── api_config.dart
 │   ├── auth_api_service.dart
-│   └── auth_service.dart
+│   ├── auth_service.dart
+│   ├── categorie_service.dart
+│   ├── livre_service.dart
+│   └── user_service.dart
 └── main.dart
 ```
 
@@ -205,6 +219,24 @@ showAppModal(
 - Logout opens `AppModal` confirmation first, then clears navigation stack on confirm
 - Driven by `MenuConfig` → `MenuSection` → `MenuItem` (see `models/menu_model.dart`)
 
+### BookInfoCard
+
+**File:** `lib/ui/components/cards/book_info_card.dart`
+
+- Reusable book presentation card used in admin details
+- Displays cover, title, authors, metadata chips, and description section
+- Accepts `Livre` model directly (`BookInfoCard(livre: book)`)
+
+### PdfPreviewCard
+
+**File:** `lib/ui/components/cards/pdf_preview_card.dart`
+
+- Reusable inline PDF preview component for book detail pages
+- Fetches presigned URL with `LivreService.getLivrePdfUrl(livreId)` (`GET /livres/:id/lire`)
+- Downloads PDF and renders it with `flutter_pdfview`
+- Uses a larger viewport for readability and provides explicit zoom in / zoom out controls
+- Provides previous/next page controls with live page index (`current / total`) to guarantee page swapping
+
 ---
 
 ## Navigation Architecture
@@ -253,13 +285,17 @@ It is provided at the ClientLayout level via ChangeNotifierProvider.
 
 ## Updated app_router.dart routes
 
-| Route   | Page            | Notes                       |
-| ------- | --------------- | --------------------------- |
-| /       | SessionGatePage | entry point                 |
-| /login  | LoginPage       |                             |
-| /signup | SignupPage      |                             |
-| /client | ClientLayout    | shell, no individual routes |
-| /admin  | AdminLayout     | shell, no individual routes |
+| Route              | Page                | Notes                                   |
+| ------------------ | ------------------- | --------------------------------------- |
+| /                  | SessionGatePage     | entry point                             |
+| /login             | LoginPage           |                                         |
+| /signup            | SignupPage          |                                         |
+| /client            | ClientLayout        | shell, supports `initialIndex` argument |
+| /admin             | AdminLayout         | shell, supports `initialIndex` argument |
+| /admin/user/detail | AdminUserDetailPage | Layer 3 detail page                     |
+| /admin/book/create | AdminCreateBookPage | Layer 3 detail page                     |
+| /admin/book/detail | AdminBookDetailPage | Layer 3 detail page                     |
+| /client/cart       | ClientCartPage      | Layer 3 detail page                     |
 
 Any route beyond these is a Layer 3 detail page and must be registered here.
 
@@ -267,18 +303,25 @@ Any route beyond these is a Layer 3 detail page and must be registered here.
 
 ## 🔌 Services & API
 
-**Files:** `lib/service/`
+**Files:** `lib/service/` + `lib/core/api/`
 
-| File                    | Responsibility                                                                                                                    |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `api_config.dart`       | Base URL, headers, timeout config                                                                                                 |
-| `auth_api_service.dart` | Raw HTTP calls for login/signup/refresh + safe parsing for map/string/primitive error payloads + FR/EN password key compatibility |
-| `auth_service.dart`     | Auth logic, JWT storage via SecureStorage                                                                                         |
+| File                       | Responsibility                                                                                                                    |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `core/api/api_config.dart` | Base URL + endpoint constants (`auth`, `users`, `livres`)                                                                         |
+| `auth_api_service.dart`    | Raw HTTP calls for login/signup/refresh + safe parsing for map/string/primitive error payloads + FR/EN password key compatibility |
+| `auth_service.dart`        | Auth logic, JWT storage via SecureStorage                                                                                         |
+| `categorie_service.dart`   | Category fetch/create for admin book creation flow                                                                                |
+| `user_service.dart`        | User fetch/edit/delete flows                                                                                                      |
+| `livre_service.dart`       | Livre list/detail/read-url/review/admin CRUD with multipart upload                                                                |
 
 - `AuthInterceptor` excludes `/auth/login` and `/auth/signup` from token injection.
 - Auth requests are also sent with `Options(extra: {'requiresAuth': false})` to force public access.
 - Token read key is `auth_token` (with fallback to legacy `access_token`).
-- Default base URL: iOS/macOS via Wi-Fi IP `http://192.168.1.39:8000/api`, Android emulator via bridge `http://10.0.2.2:8000/api`.
+- Default base URL currently: Android uses Railway HTTPS API, iOS/macOS uses local Wi-Fi IP `http://172.23.0.144:8000/api`.
+- Presigned file URLs from backend that start with `http://localhost:9000` are normalized in `LivreService` to use `ApiConfig.minioUrl`.
+- `ApiConfig.minioUrl` is configurable via `MINIO_URL` environment variable.
+- Book creation page uses `file_picker` to attach PDF + cover image before calling `LivreService.creerLivre()`.
+- Book creation fetches categories from `/categories`, allows selecting from dropdown, and supports creating a new category inline (admin).
 - Never use port `9000`/`9001` for API base URL (reserved for MinIO services).
 - For iOS development over HTTP, ATS is enabled in `ios/Runner/Info.plist`.
 
@@ -286,10 +329,16 @@ Any route beyond these is a Layer 3 detail page and must be registered here.
 
 ## 📦 Models
 
-| File              | Class                                   | Notes                  |
-| ----------------- | --------------------------------------- | ---------------------- |
-| `user_model.dart` | `UserModel`                             | User data + role field |
-| `menu_model.dart` | `MenuConfig`, `MenuSection`, `MenuItem` | Sidebar nav structure  |
+| File                        | Class / Types                                        | Notes                                           |
+| --------------------------- | ---------------------------------------------------- | ----------------------------------------------- |
+| `user_model.dart`           | `User`                                               | User data model                                 |
+| `menu_model.dart`           | `MenuConfig`, `MenuSection`, `MenuItem`              | Sidebar nav structure                           |
+| `categorie_model.dart`      | `Categorie`                                          | Category entity                                 |
+| `avis_model.dart`           | `Avis`                                               | Embedded review entity                          |
+| `livre_model.dart`          | `Livre`                                              | Book entity (supports populated or id category) |
+| `ligne_commande_model.dart` | `LigneCommande`                                      | Embedded order line snapshot                    |
+| `commande_model.dart`       | `Commande`, `CommandeStatut`, `CommandeStatutMapper` | Order aggregate + status mapping                |
+| `lecture_model.dart`        | `Lecture`                                            | Reading progress entity                         |
 
 ---
 
@@ -308,15 +357,19 @@ Volumes: `mongodb_data`, `minio_data`
 
 ## 📋 Quick Component Reference
 
-| Component      | File Path                                       | Usage                         |
-| -------------- | ----------------------------------------------- | ----------------------------- |
-| `AppColors`    | `lib/core/utils/app_colors.dart`                | `AppColors.primary`           |
-| `AppTheme`     | `lib/ui/theme/app_theme.dart`                   | `AppTheme.light`              |
-| `AppToast`     | `lib/ui/components/toasts/app_toast.dart`       | `ToastService.showSuccess()`  |
-| `AppModal`     | `lib/ui/components/modals/app_modal.dart`       | `showAppModal()`              |
-| `AppSidebar`   | `lib/ui/components/navigation/app_sidebar.dart` | `ClientLayout`, `AdminLayout` |
-| `ToastService` | `lib/core/utils/toast_service.dart`             | Static methods                |
-| `AppRouter`    | `lib/core/navigation/app_router.dart`           | `Navigator.pushNamed()`       |
+| Component           | File Path                                           | Usage                                               |
+| ------------------- | --------------------------------------------------- | --------------------------------------------------- |
+| `AppColors`         | `lib/core/utils/app_colors.dart`                    | `AppColors.primary`                                 |
+| `AppTheme`          | `lib/ui/theme/app_theme.dart`                       | `AppTheme.light`                                    |
+| `AppToast`          | `lib/ui/components/toasts/app_toast.dart`           | `ToastService.showSuccess()`                        |
+| `AppModal`          | `lib/ui/components/modals/app_modal.dart`           | `showAppModal()`                                    |
+| `AppSidebar`        | `lib/ui/components/navigation/app_sidebar.dart`     | `ClientLayout`, `AdminLayout`                       |
+| `AdminBookGridCard` | `lib/ui/components/cards/admin_book_grid_card.dart` | Reusable admin book grid tile (cover, title, price) |
+| `BookInfoCard`      | `lib/ui/components/cards/book_info_card.dart`       | Reusable book detail section                        |
+| `PdfPreviewCard`    | `lib/ui/components/cards/pdf_preview_card.dart`     | Reusable inline PDF preview                         |
+| `LibraryAppBar`     | `lib/ui/components/navigation/library_app_bar.dart` | Shared app bar (admin/client)                       |
+| `ToastService`      | `lib/core/utils/toast_service.dart`                 | Static methods                                      |
+| `AppRouter`         | `lib/core/navigation/app_router.dart`               | `Navigator.pushNamed()`                             |
 
 ---
 

@@ -76,7 +76,7 @@ class UserService {
     return User.fromJson(response.data as Map<String, dynamic>);
   }
 
-  Future<void> deleteUser(int id) async {
+  Future<void> deleteUser(String id) async {
     await _dioClient.dio.delete('${ApiConfig.usersEndpoint}/$id');
   }
 }

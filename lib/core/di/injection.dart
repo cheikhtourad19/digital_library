@@ -1,3 +1,5 @@
+import 'package:digital_library/service/categorie_service.dart';
+import 'package:digital_library/service/livre_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,6 +31,12 @@ Future<void> setupDependencies() async {
 
   getIt.registerLazySingleton<AuthApiService>(
     () => AuthApiService(dioClient: getIt<DioClient>()),
+  );
+  getIt.registerLazySingleton<LivreService>(
+    () => LivreService(dioClient: getIt<DioClient>()),
+  );
+  getIt.registerLazySingleton<CategorieService>(
+    () => CategorieService(dioClient: getIt<DioClient>()),
   );
 
   getIt.registerLazySingleton<AuthService>(

@@ -6,6 +6,7 @@ import '../../../core/navigation/app_router.dart';
 import '../../../models/menu_model.dart';
 import '../../../service/auth_service.dart';
 import '../../components/navigation/app_sidebar.dart';
+import '../../components/navigation/library_app_bar.dart';
 import 'client_books_page.dart';
 import 'client_favorites_page.dart';
 import 'client_home_page.dart';
@@ -58,7 +59,7 @@ class _ClientLayoutState extends State<ClientLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_titles[_selectedIndex])),
+      appBar: LibraryAppBar(title: _titles[_selectedIndex], isAdmin: false),
       drawer: AppSidebar(
         menus: MenuConfig.getClientMenus(),
         selectedIndex: _selectedIndex,
