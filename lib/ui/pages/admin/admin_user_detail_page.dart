@@ -1,5 +1,6 @@
 import 'package:digital_library/core/di/injection.dart';
 import 'package:digital_library/core/navigation/app_router.dart';
+import 'package:digital_library/core/utils/toast_service.dart';
 import 'package:digital_library/service/user_service.dart';
 import 'package:digital_library/ui/components/buttons/app_button.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,15 @@ class AdminUserDetailPage extends StatelessWidget {
   final User user;
 
   const AdminUserDetailPage({super.key, required this.user});
+
+  String _formatDate(DateTime? date) {
+    if (date == null) {
+      return 'Unknown';
+    }
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$month-$day';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,54 +60,142 @@ class AdminUserDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Profile card ─────────────────────────────────
             _buildProfileCard(),
+            const SizedBox(height: 14),
+            _buildQuickFactsCard(),
             const SizedBox(height: 20),
-
-            // ── Info section ─────────────────────────────────
             _buildInfoSection(),
             const SizedBox(height: 20),
-            _buildActionButtonsRow(context),
+            _buildActionSection(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildActionButtonsRow(BuildContext context) {
-    return Row(
-      children: [
-        AppButton.danger(
-          label: "delete",
-          onPressed: () {
-            final _userService = getIt<UserService>();
-            showAppModal(
-              context: context,
-              title: 'Confirm deletion',
-              content: const Text('Are you sure you want to delete this user?'),
-              actions: [
-                AppButton.secondary(
-                  onPressed: () => Navigator.of(context).pop(),
-                  label: 'Cancel',
-                ),
-                AppButton.danger(
-                  onPressed: () async {
-                    await _userService.deleteUser(this.user.id);
-                    Navigator.of(context).pop(); // close modal
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      AppRouter.admin,
-                      (route) => false, // removes everything
-                      arguments: {'initialIndex': 3},
-                    );
-                  },
-                  label: 'delete',
-                  icon: Icons.delete,
-                ),
-              ],
-            );
-          },
+  Widget _buildActionSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Actions',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Manage this account directly from this page.',
+            style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+          ),
+          const SizedBox(height: 14),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 520;
+              if (compact) {
+                return Column(
+                  children: [
+                    AppButton.secondary(
+                      label: 'Deactivate Account',
+                      icon: Icons.person_off_rounded,
+                      onPressed: () {
+                        ToastService.showInfo(
+                          'Deactivate action will be added soon',
+                        );
+                      },
+                      expand: true,
+                    ),
+                    const SizedBox(height: 10),
+                    AppButton.danger(
+                      label: 'Delete User',
+                      icon: Icons.delete_rounded,
+                      onPressed: () => _confirmDelete(context),
+                      expand: true,
+                    ),
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(
+                    child: AppButton.secondary(
+                      label: 'Deactivate Account',
+                      icon: Icons.person_off_rounded,
+                      onPressed: () {
+                        ToastService.showInfo(
+                          'Deactivate action will be added soon',
+                        );
+                      },
+                      expand: true,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: AppButton.danger(
+                      label: 'Delete User',
+                      icon: Icons.delete_rounded,
+                      onPressed: () => _confirmDelete(context),
+                      expand: true,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    final userService = getIt<UserService>();
+
+    showAppModal(
+      context: context,
+      title: 'Confirm Deletion',
+      content: Text(
+        'Delete ${user.nom} permanently? This action cannot be undone.',
+      ),
+      actions: [
+        AppButton.secondary(
+          onPressed: () => Navigator.of(context).pop(),
+          label: 'Cancel',
         ),
-        AppButton.secondary(label: "deactivate account ", onPressed: () {}),
+        AppButton.danger(
+          onPressed: () async {
+            try {
+              await userService.deleteUser(user.id);
+              if (!context.mounted) {
+                return;
+              }
+              Navigator.of(context).pop();
+              ToastService.showSuccess('User deleted successfully');
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRouter.admin,
+                (route) => false,
+                arguments: {'initialIndex': 3},
+              );
+            } catch (_) {
+              if (!context.mounted) {
+                return;
+              }
+              Navigator.of(context).pop();
+              ToastService.showError('Failed to delete user');
+            }
+          },
+          label: 'Delete',
+          icon: Icons.delete_rounded,
+        ),
       ],
     );
   }
@@ -119,19 +217,18 @@ class AdminUserDetailPage extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Avatar
           Container(
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
+              color: AppColors.primary,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(
               child: Text(
                 user.nom[0].toUpperCase(),
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
                 ),
@@ -156,6 +253,14 @@ class AdminUserDetailPage extends StatelessWidget {
                   user.email,
                   style: const TextStyle(
                     fontSize: 13,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Member since ${_formatDate(user.dateCreation)}',
+                  style: const TextStyle(
+                    fontSize: 12,
                     color: AppColors.textMuted,
                   ),
                 ),
@@ -197,6 +302,38 @@ class AdminUserDetailPage extends StatelessWidget {
     );
   }
 
+  Widget _buildQuickFactsCard() {
+    final historyCount = user.historiqueRecherche?.length ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _FactTile(
+              icon: Icons.history_rounded,
+              label: 'Search History',
+              value: '$historyCount entries',
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _FactTile(
+              icon: Icons.verified_user_rounded,
+              label: 'Account Type',
+              value: user.isAdmin ? 'Administrator' : 'Client',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInfoSection() {
     return Container(
       decoration: BoxDecoration(
@@ -219,16 +356,18 @@ class AdminUserDetailPage extends StatelessWidget {
               ),
             ),
           ),
-          Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: AppColors.border),
           _buildInfoRow('User ID', user.id),
-          Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: AppColors.border),
           _buildInfoRow('Full Name', user.nom),
-          Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: AppColors.border),
           _buildInfoRow('Email', user.email),
-          Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: AppColors.border),
           _buildInfoRow('Role', user.isAdmin ? 'Administrator' : 'Client'),
-          Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: AppColors.border),
           _buildInfoRow('Status', 'Active'),
+          const Divider(height: 1, color: AppColors.border),
+          _buildInfoRow('Created On', _formatDate(user.dateCreation)),
         ],
       ),
     );
@@ -258,6 +397,54 @@ class AdminUserDetailPage extends StatelessWidget {
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FactTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _FactTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: AppColors.secondary),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.textMuted,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

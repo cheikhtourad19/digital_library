@@ -50,4 +50,12 @@ class ApiConfig {
       '$usersEndpoint/$id';
   static const String editInfoEndpoint = '$usersEndpoint/me';
   static String deleteUserEndpoint(String id) => '$usersEndpoint/$id';
+
+  // ── Stats ─────────────────────────────────────────────
+  static const String statsEndpoint = '/stats';
+  static const String statsOverviewEndpoint = '$statsEndpoint/overview';
+  static const String statsTopLivresEndpoint = '$statsEndpoint/top-livres';
+  static const String statsSalesTrendEndpoint = '$statsEndpoint/sales-trend';
+  static const String statsUsersEndpoint = '$statsEndpoint/users';
+  static const String statsCategoriesEndpoint = '$statsEndpoint/categories';
 }

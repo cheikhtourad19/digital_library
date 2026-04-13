@@ -65,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
       width: 108,
       height: 108,
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        color: AppColors.primary,
         shape: BoxShape.circle,
         boxShadow: const [
           BoxShadow(
@@ -94,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        color: AppColors.background,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(

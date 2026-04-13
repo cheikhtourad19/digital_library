@@ -20,9 +20,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _isSubmitting = false;
 
   final _form = FormGroup({
-    'fullName': FormControl<String>(
-      validators: [Validators.required],
-    ),
+    'fullName': FormControl<String>(validators: [Validators.required]),
     'email': FormControl<String>(
       validators: [Validators.required, Validators.email],
     ),
@@ -47,8 +45,8 @@ class _SignUpPageState extends State<SignUpPage> {
 
     try {
       await _authService.signUp(
-        fullName:
-            (_form.control('fullName') as FormControl<String>).value!.trim(),
+        fullName: (_form.control('fullName') as FormControl<String>).value!
+            .trim(),
         email: (_form.control('email') as FormControl<String>).value!.trim(),
         password: (_form.control('password') as FormControl<String>).value!,
       );
@@ -69,7 +67,7 @@ class _SignUpPageState extends State<SignUpPage> {
       width: 108,
       height: 108,
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        color: AppColors.primary,
         shape: BoxShape.circle,
         boxShadow: const [
           BoxShadow(
@@ -98,7 +96,7 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        color: AppColors.background,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -116,17 +114,13 @@ class _SignUpPageState extends State<SignUpPage> {
                           const SizedBox(height: 20),
                           Text(
                             'Digital Library',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Create your account',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: AppColors.textMuted),
                           ),
                           const SizedBox(height: 28),

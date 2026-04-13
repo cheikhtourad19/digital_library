@@ -1,7 +1,9 @@
 import 'package:digital_library/core/di/injection.dart';
 import 'package:digital_library/core/utils/app_colors.dart';
 import 'package:digital_library/core/utils/toast_service.dart';
+import 'package:digital_library/models/user_model.dart';
 import 'package:digital_library/service/auth_api_service.dart';
+import 'package:digital_library/service/auth_service.dart';
 import 'package:digital_library/service/user_service.dart';
 import 'package:digital_library/ui/components/forms/edit_password_form.dart';
 import 'package:digital_library/ui/components/forms/edit_profile_form.dart';
@@ -18,7 +20,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final _userService = getIt<UserService>();
   final _authService = getIt<AuthApiService>();
-
+  final _authService2 = getIt<AuthService>();
   bool _isSubmittingProfile = false;
   bool _isSubmittingPassword = false;
 
@@ -71,6 +73,11 @@ class _ProfilePageState extends State<ProfilePage> {
         nom: _control<String>(_profileForm, 'fullName').value?.trim(),
         email: _control<String>(_profileForm, 'email').value?.trim(),
       );
+      if(result.user !=null){
+        User updatedUser = User.fromJson(result.user!);
+      await _authService2.updateSession(updatedUser);
+      }
+      
 
       if (!mounted) return;
       ToastService.showSuccess(result.message);
@@ -131,7 +138,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        color: AppColors.background,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -187,7 +194,7 @@ class _ProfilePageState extends State<ProfilePage> {
           width: 96,
           height: 96,
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
+            color: AppColors.primary,
             shape: BoxShape.circle,
             boxShadow: const [
               BoxShadow(

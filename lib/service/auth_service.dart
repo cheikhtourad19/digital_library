@@ -105,6 +105,13 @@ class AuthService {
     await _secureStorage.deleteAll();
   }
 
+  Future<void> updateSession(User user) async {
+    final token = await getSessionToken();
+    if (token != null) {
+      await _saveSession(token, user);
+    }
+  }
+
 
   Future<void> _saveSession(String token, User user) async {
     await _secureStorage.write(key: 'access_token', value: token);

@@ -18,7 +18,7 @@ class LibraryAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        color: AppColors.primary,
         boxShadow: [
           BoxShadow(
             color: AppColors.shadow,

@@ -151,12 +151,17 @@ class _AdminBooksPageState extends State<AdminBooksPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+      color: AppColors.background,
       child: Column(
         children: [
           _buildHeader(),
           if (_showFilters) _buildFiltersPanel(),
-          Expanded(child: _buildBody()),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _fetchLivres,
+              child: _buildBody(),
+            ),
+          ),
           if (!_isLoading) _buildPagination(),
         ],
       ),

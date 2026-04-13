@@ -86,12 +86,14 @@ lib/
 │   ├── ligne_commande_model.dart
 │   ├── livre_model.dart
 │   ├── menu_model.dart
+│   ├── stats_model.dart
 │   └── user_model.dart
 ├── service/
 │   ├── auth_api_service.dart
 │   ├── auth_service.dart
 │   ├── categorie_service.dart
 │   ├── livre_service.dart
+│   ├── stats_service.dart
 │   └── user_service.dart
 └── main.dart
 ```
@@ -109,31 +111,28 @@ import 'package:digital_library/core/utils/app_colors.dart';
 
 ### Token Reference
 
-| Token                               | Hex         | Role                                |
-| ----------------------------------- | ----------- | ----------------------------------- |
-| `AppColors.primary`                 | `#1A2B5E`   | Navy — headings, text, dark UI      |
-| `AppColors.secondary`               | `#29B6D8`   | Cyan — buttons, links, interactive  |
-| `AppColors.accent`                  | `#F5A623`   | Amber — highlights, CTAs, warnings  |
-| `AppColors.background`              | `#E8F4FB`   | Ice Blue — scaffold background      |
-| `AppColors.backgroundGradientStart` | `#C9E8F5`   | Soft Sky — gradient origin          |
-| `AppColors.surface`                 | `#FFFFFF`   | White — cards, panels               |
-| `AppColors.textPrimary`             | `#1A2B5E`   | Main body text                      |
-| `AppColors.textSecondary`           | `#29B6D8`   | Accented / label text               |
-| `AppColors.textMuted`               | `#7A9BB5`   | Hints, placeholders, captions       |
-| `AppColors.border`                  | `#4029B6D8` | Cyan @ 25% — dividers, card borders |
-| `AppColors.shadow`                  | `#1F1A2B5E` | Navy @ 12% — box shadows            |
-| `AppColors.success`                 | `#29B6D8`   | Semantic success                    |
-| `AppColors.warning`                 | `#F5A623`   | Semantic warning                    |
-| `AppColors.error`                   | `#E05252`   | Semantic error                      |
-| `AppColors.info`                    | `#29B6D8`   | Semantic info                       |
+| Token                     | Hex         | Role                                      |
+| ------------------------- | ----------- | ----------------------------------------- |
+| `AppColors.primary`       | `#1F2937`   | Charcoal — primary surfaces, dark headers |
+| `AppColors.secondary`     | `#0F766E`   | Deep Teal — actions, links, highlights    |
+| `AppColors.accent`        | `#E76F51`   | Burnt Coral — emphasis and admin accents  |
+| `AppColors.background`    | `#F7F5F2`   | Warm neutral scaffold background          |
+| `AppColors.surface`       | `#FFFFFF`   | Cards, panels, dialogs                    |
+| `AppColors.textPrimary`   | `#1F2937`   | Main readable text                        |
+| `AppColors.textSecondary` | `#0F766E`   | Accent labels / secondary titles          |
+| `AppColors.textMuted`     | `#6B7280`   | Hints and helper text                     |
+| `AppColors.border`        | `#26374151` | Soft borders and separators               |
+| `AppColors.shadow`        | `#1A111827` | Neutral shadow                            |
+| `AppColors.success`       | `#15803D`   | Semantic success                          |
+| `AppColors.warning`       | `#D97706`   | Semantic warning                          |
+| `AppColors.error`         | `#DC2626`   | Semantic error                            |
+| `AppColors.info`          | `#0284C7`   | Semantic info                             |
 
-### Gradients
+### Styling Direction
 
-| Token                          | Colors                                          |
-| ------------------------------ | ----------------------------------------------- |
-| `AppColors.backgroundGradient` | `#C9E8F5` → `#E8F4FB` (top-left → bottom-right) |
-| `AppColors.primaryGradient`    | `#29B6D8` → `#1A2B5E`                           |
-| `AppColors.accentGradient`     | `#F5A623` → `#E8913A`                           |
+- Flat color system only (no gradients)
+- High contrast text with warm neutral backgrounds
+- Teal + coral accents for premium admin-style visual hierarchy
 
 ---
 
@@ -154,15 +153,15 @@ MaterialApp(
 
 | Element                | Key Config                                              |
 | ---------------------- | ------------------------------------------------------- |
-| `AppBarTheme`          | White bg, Navy text, no elevation                       |
-| `CardThemeData`        | White surface, `#4029B6D8` border, 16px radius          |
-| `ElevatedButtonTheme`  | Navy bg, white text, 12px radius                        |
-| `OutlinedButtonTheme`  | Navy text, Cyan border, 12px radius                     |
-| `InputDecorationTheme` | White fill, Cyan focus border, 12px radius              |
-| `BottomNavigationBar`  | White bg, Cyan selected, Muted unselected               |
-| `ChipTheme`            | Ice Blue bg, Cyan selected, 8px radius                  |
-| `DividerTheme`         | Cyan @ 25% opacity, 1px                                 |
-| `TextTheme`            | Navy primaries, Cyan secondary titles, Muted small text |
+| `AppBarTheme`          | White bg, charcoal text, no elevation                   |
+| `CardThemeData`        | White surface, soft neutral border, 16px radius         |
+| `ElevatedButtonTheme`  | Charcoal bg, white text, 12px radius                    |
+| `OutlinedButtonTheme`  | Charcoal text, teal border, 12px radius                 |
+| `InputDecorationTheme` | White fill, teal focus border, 12px radius              |
+| `BottomNavigationBar`  | White bg, teal selected, muted unselected               |
+| `ChipTheme`            | Warm neutral bg, teal selected, 8px radius              |
+| `DividerTheme`         | Neutral border tone, 1px                                |
+| `TextTheme`            | Charcoal primaries, teal secondary titles, muted labels |
 
 > **Known fix:** Use `CardThemeData` (not `CardTheme`) in `ThemeData` — Material 3 requires `CardThemeData`.
 
@@ -237,6 +236,43 @@ showAppModal(
 - Uses a larger viewport for readability and provides explicit zoom in / zoom out controls
 - Provides previous/next page controls with live page index (`current / total`) to guarantee page swapping
 
+### AdminAnalyticsPage
+
+**File:** `lib/ui/pages/admin/admin_analytics_page.dart`
+
+- Fully wired to `/stats/*` backend endpoints via `StatsService`
+- Displays KPI cards for sales, users, and books in selected window (`7/30/90/365` days)
+- Renders sales line chart and registration bar chart using `fl_chart`
+- Shows top livres and top categories ranked lists
+- Supports pull-to-refresh and manual refresh action
+
+### AdminHomePage
+
+**File:** `lib/ui/pages/admin/admin_home_page.dart`
+
+- Landing dashboard for admin shell with welcome hero (`Welcome Admin`)
+- Provides quick shortcut cards to `Analytics`, `Books`, `Users`, and `Profile`
+- Shortcuts navigate using `AppRouter.admin` with `initialIndex` arguments
+- Includes a built-in "Getting Started Tutorial" checklist for onboarding
+
+### AdminUsersPage
+
+**File:** `lib/ui/pages/admin/admin_users_page.dart`
+
+- Users table is hydrated once from backend, then filtering is fully client-side
+- Supports live search (`name` + `email`), role filters (`all/admin/client`)
+- Includes client-side `recent 30d` filter and sort options (`newest/oldest/name`)
+- Filter state can be reset without reloading from backend
+
+### AdminUserDetailPage
+
+**File:** `lib/ui/pages/admin/admin_user_detail_page.dart`
+
+- Refined profile layout with quick facts cards and expanded account info
+- Shows member creation date and search history count
+- Action section includes responsive button layout and safer delete flow
+- Deletion now provides toast feedback on success/failure and redirects to admin users tab
+
 ---
 
 ## Navigation Architecture
@@ -307,12 +343,13 @@ Any route beyond these is a Layer 3 detail page and must be registered here.
 
 | File                       | Responsibility                                                                                                                    |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `core/api/api_config.dart` | Base URL + endpoint constants (`auth`, `users`, `livres`)                                                                         |
+| `core/api/api_config.dart` | Base URL + endpoint constants (`auth`, `users`, `livres`, `stats`)                                                                |
 | `auth_api_service.dart`    | Raw HTTP calls for login/signup/refresh + safe parsing for map/string/primitive error payloads + FR/EN password key compatibility |
 | `auth_service.dart`        | Auth logic, JWT storage via SecureStorage                                                                                         |
 | `categorie_service.dart`   | Category fetch/create for admin book creation flow                                                                                |
 | `user_service.dart`        | User fetch/edit/delete flows                                                                                                      |
 | `livre_service.dart`       | Livre list/detail/read-url/review/admin CRUD with multipart upload                                                                |
+| `stats_service.dart`       | Admin analytics data provider (`overview`, `top-livres`, `sales-trend`, `users`, `categories`)                                    |
 
 - `AuthInterceptor` excludes `/auth/login` and `/auth/signup` from token injection.
 - Auth requests are also sent with `Options(extra: {'requiresAuth': false})` to force public access.
@@ -329,16 +366,17 @@ Any route beyond these is a Layer 3 detail page and must be registered here.
 
 ## 📦 Models
 
-| File                        | Class / Types                                        | Notes                                           |
-| --------------------------- | ---------------------------------------------------- | ----------------------------------------------- |
-| `user_model.dart`           | `User`                                               | User data model                                 |
-| `menu_model.dart`           | `MenuConfig`, `MenuSection`, `MenuItem`              | Sidebar nav structure                           |
-| `categorie_model.dart`      | `Categorie`                                          | Category entity                                 |
-| `avis_model.dart`           | `Avis`                                               | Embedded review entity                          |
-| `livre_model.dart`          | `Livre`                                              | Book entity (supports populated or id category) |
-| `ligne_commande_model.dart` | `LigneCommande`                                      | Embedded order line snapshot                    |
-| `commande_model.dart`       | `Commande`, `CommandeStatut`, `CommandeStatutMapper` | Order aggregate + status mapping                |
-| `lecture_model.dart`        | `Lecture`                                            | Reading progress entity                         |
+| File                        | Class / Types                                                                    | Notes                                           |
+| --------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `user_model.dart`           | `User`                                                                           | User data model                                 |
+| `menu_model.dart`           | `MenuConfig`, `MenuSection`, `MenuItem`                                          | Sidebar nav structure                           |
+| `stats_model.dart`          | `StatsOverview`, `SalesTrendStats`, `UsersStats`, `TopLivreStat`, `CategoryStat` | Analytics DTOs and parsers                      |
+| `categorie_model.dart`      | `Categorie`                                                                      | Category entity                                 |
+| `avis_model.dart`           | `Avis`                                                                           | Embedded review entity                          |
+| `livre_model.dart`          | `Livre`                                                                          | Book entity (supports populated or id category) |
+| `ligne_commande_model.dart` | `LigneCommande`                                                                  | Embedded order line snapshot                    |
+| `commande_model.dart`       | `Commande`, `CommandeStatut`, `CommandeStatutMapper`                             | Order aggregate + status mapping                |
+| `lecture_model.dart`        | `Lecture`                                                                        | Reading progress entity                         |
 
 ---
 
@@ -357,31 +395,35 @@ Volumes: `mongodb_data`, `minio_data`
 
 ## 📋 Quick Component Reference
 
-| Component           | File Path                                           | Usage                                               |
-| ------------------- | --------------------------------------------------- | --------------------------------------------------- |
-| `AppColors`         | `lib/core/utils/app_colors.dart`                    | `AppColors.primary`                                 |
-| `AppTheme`          | `lib/ui/theme/app_theme.dart`                       | `AppTheme.light`                                    |
-| `AppToast`          | `lib/ui/components/toasts/app_toast.dart`           | `ToastService.showSuccess()`                        |
-| `AppModal`          | `lib/ui/components/modals/app_modal.dart`           | `showAppModal()`                                    |
-| `AppSidebar`        | `lib/ui/components/navigation/app_sidebar.dart`     | `ClientLayout`, `AdminLayout`                       |
-| `AdminBookGridCard` | `lib/ui/components/cards/admin_book_grid_card.dart` | Reusable admin book grid tile (cover, title, price) |
-| `BookInfoCard`      | `lib/ui/components/cards/book_info_card.dart`       | Reusable book detail section                        |
-| `PdfPreviewCard`    | `lib/ui/components/cards/pdf_preview_card.dart`     | Reusable inline PDF preview                         |
-| `LibraryAppBar`     | `lib/ui/components/navigation/library_app_bar.dart` | Shared app bar (admin/client)                       |
-| `ToastService`      | `lib/core/utils/toast_service.dart`                 | Static methods                                      |
-| `AppRouter`         | `lib/core/navigation/app_router.dart`               | `Navigator.pushNamed()`                             |
+| Component             | File Path                                           | Usage                                               |
+| --------------------- | --------------------------------------------------- | --------------------------------------------------- |
+| `AppColors`           | `lib/core/utils/app_colors.dart`                    | `AppColors.primary`                                 |
+| `AppTheme`            | `lib/ui/theme/app_theme.dart`                       | `AppTheme.light`                                    |
+| `AppToast`            | `lib/ui/components/toasts/app_toast.dart`           | `ToastService.showSuccess()`                        |
+| `AppModal`            | `lib/ui/components/modals/app_modal.dart`           | `showAppModal()`                                    |
+| `AppSidebar`          | `lib/ui/components/navigation/app_sidebar.dart`     | `ClientLayout`, `AdminLayout`                       |
+| `AdminBookGridCard`   | `lib/ui/components/cards/admin_book_grid_card.dart` | Reusable admin book grid tile (cover, title, price) |
+| `BookInfoCard`        | `lib/ui/components/cards/book_info_card.dart`       | Reusable book detail section                        |
+| `PdfPreviewCard`      | `lib/ui/components/cards/pdf_preview_card.dart`     | Reusable inline PDF preview                         |
+| `LibraryAppBar`       | `lib/ui/components/navigation/library_app_bar.dart` | Shared app bar (admin/client)                       |
+| `AdminHomePage`       | `lib/ui/pages/admin/admin_home_page.dart`           | Admin welcome dashboard + quick shortcuts/tutorial  |
+| `AdminUsersPage`      | `lib/ui/pages/admin/admin_users_page.dart`          | Client-side users filters + sortable users table    |
+| `AdminUserDetailPage` | `lib/ui/pages/admin/admin_user_detail_page.dart`    | User profile detail with quick facts + actions      |
+| `ToastService`        | `lib/core/utils/toast_service.dart`                 | Static methods                                      |
+| `AppRouter`           | `lib/core/navigation/app_router.dart`               | `Navigator.pushNamed()`                             |
 
 ---
 
 ## ✅ Agent Rules
 
 1. **Always use `AppColors.*` tokens** — never hardcode hex values in widgets.
-2. **Always use `AppTheme.light`** — never use `ColorScheme.fromSeed()`.
-3. **Use `CardThemeData`** not `CardTheme` in `ThemeData` (Material 3).
-4. **Toast feedback on every async action** — success, error, or info.
-5. **New page?** → Add it to the File Structure and Navigation table above.
-6. **New component?** → Add it to the Components section and Quick Reference table above.
-7. **New color/gradient?** → Add it to `AppColors` and the Color Palette table above.
-8. **New service?** → Add it under Services & API above.
-9. **New model?** → Add it under Models above.
-10. **Navigation** uses single-shell state in layouts: sidebar calls `onMenuTap(index)` and pages switch via `setState`, not route pushes.
+2. **No gradients in UI** — use flat `color:` based styling only.
+3. **Always use `AppTheme.light`** — never use `ColorScheme.fromSeed()`.
+4. **Use `CardThemeData`** not `CardTheme` in `ThemeData` (Material 3).
+5. **Toast feedback on every async action** — success, error, or info.
+6. **New page?** → Add it to the File Structure and Navigation table above.
+7. **New component?** → Add it to the Components section and Quick Reference table above.
+8. **New color token?** → Add it to `AppColors` and the Color Palette table above.
+9. **New service?** → Add it under Services & API above.
+10. **New model?** → Add it under Models above.
+11. **Navigation** uses single-shell state in layouts: sidebar calls `onMenuTap(index)` and pages switch via `setState`, not route pushes.

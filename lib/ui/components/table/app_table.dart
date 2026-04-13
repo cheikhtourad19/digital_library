@@ -275,7 +275,7 @@ class _TableRow extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Center(

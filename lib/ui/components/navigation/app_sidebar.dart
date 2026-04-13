@@ -144,7 +144,7 @@ class _AppSidebarState extends State<AppSidebar>
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 52, 16, 24),
       decoration: const BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        color: AppColors.primary,
         borderRadius: BorderRadius.only(topRight: Radius.circular(24)),
       ),
       child: Column(

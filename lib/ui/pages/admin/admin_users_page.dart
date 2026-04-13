@@ -7,6 +7,10 @@ import '../../../core/utils/app_colors.dart';
 import '../../../models/user_model.dart';
 import '../../components/table/app_table.dart';
 
+enum _UserRoleFilter { all, admin, client }
+
+enum _UserSortOption { newest, oldest, nameAsc, nameDesc }
+
 class AdminUsersPage extends StatefulWidget {
   const AdminUsersPage({super.key});
 
@@ -18,6 +22,9 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   bool _isLoading = false;
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  _UserRoleFilter _roleFilter = _UserRoleFilter.all;
+  _UserSortOption _sortOption = _UserSortOption.newest;
+  bool _recentOnly = false;
   final UserService _userService = getIt<UserService>();
   List<User> _users = [];
   Future<void> loadUsers() async {
@@ -45,17 +52,80 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     super.initState();
     loadUsers();
   }
-  // Mock data for testing
+  List<User> get _filtered {
+    final now = DateTime.now();
+    final recentThreshold = now.subtract(const Duration(days: 30));
+    final query = _searchQuery.trim().toLowerCase();
 
-  List<User> get _filtered => _searchQuery.isEmpty
-      ? _users
-      : _users
-            .where(
-              (u) =>
-                  u.nom.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                  u.email.toLowerCase().contains(_searchQuery.toLowerCase()),
-            )
-            .toList();
+    final filtered = _users.where((u) {
+      final matchesSearch = query.isEmpty ||
+          u.nom.toLowerCase().contains(query) ||
+          u.email.toLowerCase().contains(query);
+
+      final matchesRole = switch (_roleFilter) {
+        _UserRoleFilter.all => true,
+        _UserRoleFilter.admin => u.isAdmin,
+        _UserRoleFilter.client => !u.isAdmin,
+      };
+
+      final matchesRecent = !_recentOnly ||
+          (u.dateCreation != null && u.dateCreation!.isAfter(recentThreshold));
+
+      return matchesSearch && matchesRole && matchesRecent;
+    }).toList();
+
+    filtered.sort((a, b) {
+      final aName = a.nom.toLowerCase();
+      final bName = b.nom.toLowerCase();
+      final aDate = a.dateCreation;
+      final bDate = b.dateCreation;
+
+      return switch (_sortOption) {
+        _UserSortOption.newest => _compareDateDesc(aDate, bDate),
+        _UserSortOption.oldest => _compareDateAsc(aDate, bDate),
+        _UserSortOption.nameAsc => aName.compareTo(bName),
+        _UserSortOption.nameDesc => bName.compareTo(aName),
+      };
+    });
+
+    return filtered;
+  }
+
+  int _compareDateDesc(DateTime? a, DateTime? b) {
+    if (a == null && b == null) {
+      return 0;
+    }
+    if (a == null) {
+      return 1;
+    }
+    if (b == null) {
+      return -1;
+    }
+    return b.compareTo(a);
+  }
+
+  int _compareDateAsc(DateTime? a, DateTime? b) {
+    if (a == null && b == null) {
+      return 0;
+    }
+    if (a == null) {
+      return 1;
+    }
+    if (b == null) {
+      return -1;
+    }
+    return a.compareTo(b);
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _searchQuery = '';
+      _searchController.clear();
+      _roleFilter = _UserRoleFilter.all;
+      _sortOption = _UserSortOption.newest;
+      _recentOnly = false;
+    });
+  }
 
   void _viewUser(User user) {
     Navigator.of(
@@ -73,18 +143,22 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Page header ──────────────────────────────────
-            _buildPageHeader(),
-            const SizedBox(height: 20),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(padding: const EdgeInsets.all(20), child: _buildPageHeader()),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _buildFiltersPanel(),
+          ),
+          const SizedBox(height: 14),
 
-            // ── Table ────────────────────────────────────────
-            Expanded(
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: loadUsers,
               child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: AppTable<User>(
                   title: 'All Users',
                   trailing: _buildSearchBar(),
@@ -94,21 +168,19 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                   emptyMessage: 'No users found',
                   rowBuilder: (user) => [
                     AppTableCell.avatar(user.nom, subtitle: user.email),
-
                     AppTableCell.badge(
                       user.isAdmin ? 'Admin' : 'Client',
                       color: user.isAdmin
                           ? AppColors.accent
                           : AppColors.secondary,
                     ),
-                    // replace with user.isActive
                     AppTableCell.action(onTap: () => _viewUser(user)),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -142,13 +214,128 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               ),
             ),
             Text(
-              '${_users.length} total users',
+              '${_filtered.length} shown / ${_users.length} total',
               style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
             ),
           ],
         ),
       ],
     );
+  }
+
+  Widget _buildFiltersPanel() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          _buildRoleChip(_UserRoleFilter.all, 'All'),
+          _buildRoleChip(_UserRoleFilter.admin, 'Admins'),
+          _buildRoleChip(_UserRoleFilter.client, 'Clients'),
+          FilterChip(
+            label: const Text('Recent 30d'),
+            selected: _recentOnly,
+            onSelected: (selected) => setState(() => _recentOnly = selected),
+            selectedColor: AppColors.secondary.withOpacity(0.14),
+            checkmarkColor: AppColors.secondary,
+            side: BorderSide(color: AppColors.border),
+            labelStyle: const TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+          PopupMenuButton<_UserSortOption>(
+            initialValue: _sortOption,
+            tooltip: 'Sort',
+            onSelected: (value) => setState(() => _sortOption = value),
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: _UserSortOption.newest,
+                child: Text('Newest first'),
+              ),
+              PopupMenuItem(
+                value: _UserSortOption.oldest,
+                child: Text('Oldest first'),
+              ),
+              PopupMenuItem(
+                value: _UserSortOption.nameAsc,
+                child: Text('Name A-Z'),
+              ),
+              PopupMenuItem(
+                value: _UserSortOption.nameDesc,
+                child: Text('Name Z-A'),
+              ),
+            ],
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.sort_rounded,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _sortLabel(_sortOption),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          TextButton.icon(
+            onPressed: _clearFilters,
+            icon: const Icon(Icons.refresh_rounded, size: 16),
+            label: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoleChip(_UserRoleFilter value, String label) {
+    final selected = _roleFilter == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => setState(() => _roleFilter = value),
+      selectedColor: AppColors.secondary.withOpacity(0.14),
+      side: BorderSide(color: AppColors.border),
+      labelStyle: TextStyle(
+        color: selected ? AppColors.secondary : AppColors.textPrimary,
+        fontWeight: FontWeight.w600,
+        fontSize: 12,
+      ),
+    );
+  }
+
+  String _sortLabel(_UserSortOption option) {
+    return switch (option) {
+      _UserSortOption.newest => 'Newest',
+      _UserSortOption.oldest => 'Oldest',
+      _UserSortOption.nameAsc => 'Name A-Z',
+      _UserSortOption.nameDesc => 'Name Z-A',
+    };
   }
 
   Widget _buildSearchBar() {
