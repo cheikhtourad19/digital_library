@@ -8,13 +8,13 @@ import 'interceptors/error_interceptor.dart';
 
 class DioClient {
   late final Dio _dio;
-
+  
   DioClient({required FlutterSecureStorage secureStorage}) {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConfig.baseUrl,
         connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 50),
+        receiveTimeout: const Duration(seconds: 10),
         sendTimeout: const Duration(seconds: 15),
         headers: {
           'Content-Type': 'application/json',

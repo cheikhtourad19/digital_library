@@ -31,7 +31,7 @@ class AppRouter {
   static const String adminCreateBookPage = '/admin/book/create';
   static const String adminBookDetailPage = '/admin/book/detail';
   static const String clientCartPage = '/client/cart';
-
+  
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case sessionGate:

@@ -5,7 +5,7 @@ class ApiConfig {
     if (Platform.isAndroid) {
       return 'https://digital-library-backend-production-211f.up.railway.app/api';
     } else {
-      return 'http://192.168.1.39:8000/api';
+      return 'http://172.30.238.88:8000/api';
       // return 'https://digital-library-backend-production-211f.up.railway.app/api';
     }
   }
@@ -19,7 +19,7 @@ class ApiConfig {
     if (Platform.isAndroid) {
       return 'http://10.0.2.2:9000';
     }
-    return 'http://192.168.1.39:9000';
+    return 'http://172.30.238.88:9000';
   }
 
   static final String minioUrl = String.fromEnvironment(
@@ -58,4 +58,6 @@ class ApiConfig {
   static const String statsSalesTrendEndpoint = '$statsEndpoint/sales-trend';
   static const String statsUsersEndpoint = '$statsEndpoint/users';
   static const String statsCategoriesEndpoint = '$statsEndpoint/categories';
+  static const String statsTopCategoriesByAgeEndpoint =
+      '$statsEndpoint/top-categories-by-age';
 }

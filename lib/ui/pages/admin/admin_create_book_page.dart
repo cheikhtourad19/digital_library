@@ -25,9 +25,6 @@ class _AdminCreateBookPageState extends State<AdminCreateBookPage> {
   final TextEditingController _auteursCtrl = TextEditingController();
   final TextEditingController _descriptionCtrl = TextEditingController();
   final TextEditingController _prixCtrl = TextEditingController();
-  final TextEditingController _langueCtrl = TextEditingController();
-  final TextEditingController _isbnCtrl = TextEditingController();
-  final TextEditingController _datePublicationCtrl = TextEditingController();
   final TextEditingController _newCategorieNomCtrl = TextEditingController();
   final TextEditingController _newCategorieDescCtrl = TextEditingController();
 
@@ -35,6 +32,9 @@ class _AdminCreateBookPageState extends State<AdminCreateBookPage> {
   String? _selectedCategorieId;
   bool _isLoadingCategories = true;
   bool _isCreatingCategorie = false;
+
+  String? _selectedLanguage;
+  DateTime? _selectedPublicationDate;
 
   List<int>? _pdfBytes;
   String? _pdfFileName;
@@ -54,9 +54,6 @@ class _AdminCreateBookPageState extends State<AdminCreateBookPage> {
     _auteursCtrl.dispose();
     _descriptionCtrl.dispose();
     _prixCtrl.dispose();
-    _langueCtrl.dispose();
-    _isbnCtrl.dispose();
-    _datePublicationCtrl.dispose();
     _newCategorieNomCtrl.dispose();
     _newCategorieDescCtrl.dispose();
     super.dispose();
@@ -203,6 +200,19 @@ class _AdminCreateBookPageState extends State<AdminCreateBookPage> {
     });
   }
 
+  Future<void> _pickPublicationDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedPublicationDate ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      setState(() => _selectedPublicationDate = picked);
+    }
+  }
+
   Future<void> _submit() async {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) {
@@ -232,13 +242,6 @@ class _AdminCreateBookPageState extends State<AdminCreateBookPage> {
       return;
     }
 
-    final publicationDate = _parsePublicationDate(_datePublicationCtrl.text);
-    if (_datePublicationCtrl.text.trim().isNotEmpty &&
-        publicationDate == null) {
-      ToastService.showWarning('Publication date must use YYYY-MM-DD');
-      return;
-    }
-
     final auteurs = _auteursCtrl.text
         .split(',')
         .map((item) => item.trim())
@@ -259,9 +262,8 @@ class _AdminCreateBookPageState extends State<AdminCreateBookPage> {
         description: _descriptionCtrl.text.trim(),
         categorie: _selectedCategorieId!,
         prix: prix,
-        langue: _langueCtrl.text.trim(),
-        isbn: _isbnCtrl.text.trim().isEmpty ? null : _isbnCtrl.text.trim(),
-        datePublication: publicationDate,
+        langue: _selectedLanguage ?? '',
+        datePublication: _selectedPublicationDate,
         pdfBytes: _pdfBytes!,
         pdfFileName: _pdfFileName!,
         couvertureBytes: _coverBytes!,
@@ -311,7 +313,7 @@ class _AdminCreateBookPageState extends State<AdminCreateBookPage> {
             const SizedBox(height: 10),
             _buildCategorySelector(),
             const SizedBox(height: 10),
-            _field(_langueCtrl, 'Language *'),
+            _buildLanguageSelector(),
             const SizedBox(height: 10),
             _field(
               _prixCtrl,
@@ -321,13 +323,7 @@ class _AdminCreateBookPageState extends State<AdminCreateBookPage> {
               ),
             ),
             const SizedBox(height: 10),
-            _field(_isbnCtrl, 'ISBN (optional)'),
-            const SizedBox(height: 10),
-            _field(
-              _datePublicationCtrl,
-              'Publication date (YYYY-MM-DD)',
-              hint: '2026-04-11',
-            ),
+            _buildPublicationDatePicker(),
             const SizedBox(height: 10),
             _field(_descriptionCtrl, 'Description *', maxLines: 5),
             const SizedBox(height: 14),
@@ -500,11 +496,111 @@ class _AdminCreateBookPageState extends State<AdminCreateBookPage> {
     );
   }
 
-  DateTime? _parsePublicationDate(String value) {
-    final normalized = value.trim();
-    if (normalized.isEmpty) {
-      return null;
-    }
-    return DateTime.tryParse(normalized);
+  Widget _buildLanguageSelector() {
+    final languages = [
+      'English',
+      'French',
+      'Spanish',
+      'Arabic',
+      'German',
+      'Chinese',
+      'Japanese',
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Language *',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<String>(
+            value: _selectedLanguage,
+            isExpanded: true,
+            hint: const Text('Select a language'),
+            items: languages
+                .map(
+                  (lang) =>
+                      DropdownMenuItem<String>(value: lang, child: Text(lang)),
+                )
+                .toList(),
+            onChanged: (value) => setState(() => _selectedLanguage = value),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Language is required';
+              }
+              return null;
+            },
+            decoration: const InputDecoration(
+              isDense: true,
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPublicationDatePicker() {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Publication Date',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: _pickPublicationDate,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _selectedPublicationDate != null
+                        ? '${_selectedPublicationDate!.year}-${_selectedPublicationDate!.month.toString().padLeft(2, '0')}-${_selectedPublicationDate!.day.toString().padLeft(2, '0')}'
+                        : 'Select a date',
+                    style: TextStyle(
+                      color: _selectedPublicationDate != null
+                          ? AppColors.textPrimary
+                          : AppColors.textMuted,
+                    ),
+                  ),
+                  const Icon(Icons.calendar_today),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

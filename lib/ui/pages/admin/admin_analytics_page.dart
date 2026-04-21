@@ -21,12 +21,18 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
 
   bool _isLoading = true;
   int _days = 30;
+  String _selectedAgeGroup = '18-25';
+  bool _showAllTopLivres = false;
+  bool _showAllTopCategories = false;
+  bool _showAllCategoriesByAge = false;
 
   StatsOverview? _overview;
   UsersStats? _usersStats;
   SalesTrendStats? _salesTrend;
   List<TopLivreStat> _topLivres = const <TopLivreStat>[];
+
   List<CategoryStat> _categories = const <CategoryStat>[];
+  TopCategoriesByAgeStats? _categoriesByAge;
 
   @override
   void initState() {
@@ -44,6 +50,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
         _statsService.getUsersStats(days: _days),
         _statsService.getTopLivres(limit: 8),
         _statsService.getCategoriesStats(limit: 8),
+        _statsService.getTopCategoriesByAge(_selectedAgeGroup),
       ]);
 
       if (!mounted) {
@@ -56,6 +63,7 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
         _usersStats = results[2] as UsersStats;
         _topLivres = results[3] as List<TopLivreStat>;
         _categories = results[4] as List<CategoryStat>;
+        _categoriesByAge = results[5] as TopCategoriesByAgeStats;
       });
     } catch (_) {
       if (!mounted) {
@@ -93,6 +101,8 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
                   _buildUsersTrendCard(),
                   const SizedBox(height: 12),
                   _buildTopLists(context),
+                  const SizedBox(height: 12),
+                  _buildCategoriesByAgeCard(),
                 ],
               ),
       ),
@@ -240,28 +250,23 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final crossAxisCount = width > 1200
-            ? 3
-            : width > 760
-            ? 2
-            : 1;
+        const crossAxisCount = 2;
         const spacing = 10.0;
+
         final itemWidth =
             (width - ((crossAxisCount - 1) * spacing)) / crossAxisCount;
-        final itemHeight = 120.0;
+        const itemHeight = 120.0;
 
         return Wrap(
           spacing: spacing,
           runSpacing: spacing,
-          children: cards
-              .map(
-                (kpi) => SizedBox(
-                  width: itemWidth,
-                  height: itemHeight,
-                  child: _KpiCard(data: kpi),
-                ),
-              )
-              .toList(),
+          children: cards.map((kpi) {
+            return SizedBox(
+              width: itemWidth,
+              height: itemHeight,
+              child: _KpiCard(data: kpi),
+            );
+          }).toList(),
         );
       },
     );
@@ -440,19 +445,21 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
       subtitle: 'Best-performing books by copies sold',
       child: _topLivres.isEmpty
           ? _buildEmptyState('No top livres data yet')
-          : Column(
-              children: _topLivres
-                  .map(
-                    (item) => _ListTileMetric(
-                      title: item.titre,
-                      subtitle: item.auteur.isEmpty
-                          ? 'No author'
-                          : item.auteur.join(', '),
-                      trailingTop: '${_formatInt(item.copiesSold)} sold',
-                      trailingBottom: '${_formatAmount(item.revenue)} TND',
-                    ),
-                  )
-                  .toList(),
+          : _buildExpandableMetricList(
+              items: _topLivres,
+              isExpanded: _showAllTopLivres,
+              visibleCount: 3,
+              onToggle: () {
+                setState(() => _showAllTopLivres = !_showAllTopLivres);
+              },
+              itemBuilder: (item) => _ListTileMetric(
+                title: item.titre,
+                subtitle: item.auteur.isEmpty
+                    ? 'No author'
+                    : item.auteur.join(', '),
+                trailingTop: '${_formatInt(item.copiesSold)} sold',
+                trailingBottom: '${_formatAmount(item.revenue)} TND',
+              ),
             ),
     );
 
@@ -461,18 +468,20 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
       subtitle: 'Category performance by sold copies',
       child: _categories.isEmpty
           ? _buildEmptyState('No categories stats data yet')
-          : Column(
-              children: _categories
-                  .map(
-                    (item) => _ListTileMetric(
-                      title: item.nom,
-                      subtitle:
-                          '${_formatInt(item.uniqueLivres)} unique livres • ${_formatInt(item.ordersCount)} orders',
-                      trailingTop: '${_formatInt(item.copiesSold)} sold',
-                      trailingBottom: '${_formatAmount(item.revenue)} TND',
-                    ),
-                  )
-                  .toList(),
+          : _buildExpandableMetricList(
+              items: _categories,
+              isExpanded: _showAllTopCategories,
+              visibleCount: 3,
+              onToggle: () {
+                setState(() => _showAllTopCategories = !_showAllTopCategories);
+              },
+              itemBuilder: (item) => _ListTileMetric(
+                title: item.nom,
+                subtitle:
+                    '${_formatInt(item.uniqueLivres)} unique livres • ${_formatInt(item.ordersCount)} orders',
+                trailingTop: '${_formatInt(item.copiesSold)} sold',
+                trailingBottom: '${_formatAmount(item.revenue)} TND',
+              ),
             ),
     );
 
@@ -490,6 +499,106 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
     return Column(
       children: [topBooksCard, const SizedBox(height: 10), categoriesCard],
     );
+  }
+
+  Widget _buildCategoriesByAgeCard() {
+    final categories = _categoriesByAge?.items ?? const <CategoryStat>[];
+
+    return _CardShell(
+      title: 'Categories by Age Group',
+      subtitle: 'Top categories for selected age group',
+      child: Column(
+        children: [
+          Wrap(
+            spacing: 6,
+            children: AgeGroup.all
+                .map(
+                  (ageGroup) => FilterChip(
+                    selected: _selectedAgeGroup == ageGroup.label,
+                    label: Text(ageGroup.label),
+                    onSelected: (selected) {
+                      if (selected) {
+                        setState(() => _selectedAgeGroup = ageGroup.label);
+                        _loadCategoriesByAge();
+                      }
+                    },
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 12),
+          categories.isEmpty
+              ? _buildEmptyState('No categories data for this age group')
+              : _buildExpandableMetricList(
+                  items: categories,
+                  isExpanded: _showAllCategoriesByAge,
+                  visibleCount: 3,
+                  onToggle: () {
+                    setState(
+                      () => _showAllCategoriesByAge = !_showAllCategoriesByAge,
+                    );
+                  },
+                  itemBuilder: (item) => _ListTileMetric(
+                    title: item.nom,
+                    subtitle:
+                        '${_formatInt(item.uniqueLivres)} unique livres • ${_formatInt(item.ordersCount)} orders',
+                    trailingTop: '${_formatInt(item.copiesSold)} sold',
+                    trailingBottom: '${_formatAmount(item.revenue)} TND',
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpandableMetricList<T>({
+    required List<T> items,
+    required bool isExpanded,
+    required int visibleCount,
+    required Widget Function(T item) itemBuilder,
+    required VoidCallback onToggle,
+  }) {
+    final displayItems = isExpanded ? items : items.take(visibleCount).toList();
+    final hasMoreItems = items.length > visibleCount;
+
+    return Column(
+      children: [
+        ...displayItems.map(itemBuilder),
+        if (hasMoreItems)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: onToggle,
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.secondary,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+              icon: Icon(
+                isExpanded
+                    ? Icons.expand_less_rounded
+                    : Icons.expand_more_rounded,
+                size: 18,
+              ),
+              label: Text(isExpanded ? 'Voir moins' : 'Voir plus'),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _loadCategoriesByAge() async {
+    try {
+      final result = await _statsService.getTopCategoriesByAge(
+        _selectedAgeGroup,
+      );
+      if (mounted) {
+        setState(() => _categoriesByAge = result);
+      }
+    } catch (_) {
+      if (mounted) {
+        ToastService.showError('Failed to load categories by age group');
+      }
+    }
   }
 
   List<FlSpot> _buildSalesSpots(List<SalesTrendPoint> points) {

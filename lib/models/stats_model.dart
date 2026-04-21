@@ -363,6 +363,40 @@ class CategoryStat {
   }
 }
 
+class AgeGroup {
+  final String label;
+  final int min;
+  final int max;
+
+  const AgeGroup({required this.label, required this.min, required this.max});
+
+  static final List<AgeGroup> all = [
+    const AgeGroup(label: '0-17', min: 0, max: 17),
+    const AgeGroup(label: '18-25', min: 18, max: 25),
+    const AgeGroup(label: '26-35', min: 26, max: 35),
+    const AgeGroup(label: '36-45', min: 36, max: 45),
+    const AgeGroup(label: '46-60', min: 46, max: 60),
+    const AgeGroup(label: '60+', min: 61, max: 120),
+  ];
+}
+
+class TopCategoriesByAgeStats {
+  final String ageGroup;
+  final List<CategoryStat> items;
+
+  const TopCategoriesByAgeStats({required this.ageGroup, required this.items});
+
+  factory TopCategoriesByAgeStats.fromJson(Map<String, dynamic> json) {
+    final data = _asMap(json['data']);
+    return TopCategoriesByAgeStats(
+      ageGroup: _toString(data['ageGroup']),
+      items: _toList(
+        data['items'],
+      ).whereType<Map<String, dynamic>>().map(CategoryStat.fromJson).toList(),
+    );
+  }
+}
+
 Map<String, dynamic> _asMap(dynamic value) {
   if (value is Map<String, dynamic>) return value;
   return <String, dynamic>{};

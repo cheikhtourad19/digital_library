@@ -108,4 +108,18 @@ class StatsService {
         .map(CategoryStat.fromJson)
         .toList();
   }
+
+  Future<TopCategoriesByAgeStats> getTopCategoriesByAge(String ageGroup) async {
+    final response = await _dioClient.dio.get(
+      ApiConfig.statsTopCategoriesByAgeEndpoint,
+      queryParameters: {'ageGroup': ageGroup},
+    );
+
+    final body = response.data;
+    if (body is! Map<String, dynamic>) {
+      throw Exception('Unexpected top categories by age response format');
+    }
+
+    return TopCategoriesByAgeStats.fromJson(body);
+  }
 }
