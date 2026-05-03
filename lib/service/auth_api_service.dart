@@ -62,6 +62,8 @@ class AuthApiService {
     required String fullName,
     required String email,
     required String password,
+    DateTime? dateNaissance,
+    String? sexe,
   }) async {
     try {
       final response = await _dioClient.dio.post(
@@ -70,7 +72,9 @@ class AuthApiService {
           'nom': fullName,
           'email': email,
           'motDePasse': password,
-          'password': password,
+          if (dateNaissance != null)
+            'dateNaissance': dateNaissance.toIso8601String(),
+          if (sexe != null && sexe.trim().isNotEmpty) 'sexe': sexe.trim(),
         },
         options: Options(extra: {'requiresAuth': false}),
       );

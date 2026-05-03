@@ -1,4 +1,6 @@
+import 'package:digital_library/providers/cart_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'core/database/database_service.dart';
 import 'core/navigation/app_router.dart';
 import 'core/utils/toast_service.dart';
@@ -9,7 +11,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await setupDependencies();
   await DatabaseService.instance.database;
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CartProvider(),
+      child: const MyApp(), // your existing widget
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

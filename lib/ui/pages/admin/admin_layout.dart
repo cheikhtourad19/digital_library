@@ -9,6 +9,7 @@ import '../../components/navigation/library_app_bar.dart';
 import '../../components/navigation/app_sidebar.dart';
 import 'admin_analytics_page.dart';
 import 'admin_books_page.dart';
+import 'admin_commandes_page.dart';
 import 'admin_home_page.dart';
 import 'admin_users_page.dart';
 
@@ -30,6 +31,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     AdminAnalyticsPage(),
     AdminBooksPage(),
     AdminUsersPage(),
+    AdminCommandesPage(),
     ProfilePage(),
   ];
 
@@ -38,6 +40,7 @@ class _AdminLayoutState extends State<AdminLayout> {
     'Analytics',
     'Books',
     'Users',
+    'Orders',
     'Profile',
   ];
 

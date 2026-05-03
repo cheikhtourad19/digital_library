@@ -42,6 +42,8 @@ class Commande {
 
   final String id;
   final String client;
+  final String? clientNom;
+  final String? clientEmail;
   final List<LigneCommande> livres;
   final double montantTotal;
   final String modePaiement;
@@ -54,6 +56,8 @@ class Commande {
   Commande({
     required this.id,
     required this.client,
+    this.clientNom,
+    this.clientEmail,
     required this.livres,
     required this.montantTotal,
     required this.modePaiement,
@@ -65,9 +69,14 @@ class Commande {
   });
 
   factory Commande.fromJson(Map<String, dynamic> json) {
+    final clientRaw = json['client'];
+    final clientMap = clientRaw is Map<String, dynamic> ? clientRaw : null;
+
     return Commande(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
-      client: (json['client'] ?? '').toString(),
+      client: (clientMap?['_id'] ?? clientRaw ?? '').toString(),
+      clientNom: clientMap?['nom']?.toString(),
+      clientEmail: clientMap?['email']?.toString(),
       livres:
           (json['livres'] as List?)
               ?.whereType<Map<String, dynamic>>()
@@ -88,6 +97,8 @@ class Commande {
     return {
       '_id': id,
       'client': client,
+      if (clientNom != null || clientEmail != null)
+        'clientDetails': {'nom': clientNom, 'email': clientEmail},
       'livres': livres.map((item) => item.toJson()).toList(),
       'montantTotal': montantTotal,
       'modePaiement': modePaiement,
@@ -102,6 +113,8 @@ class Commande {
   Commande copyWith({
     String? id,
     String? client,
+    Object? clientNom = _unset,
+    Object? clientEmail = _unset,
     List<LigneCommande>? livres,
     double? montantTotal,
     String? modePaiement,
@@ -114,6 +127,10 @@ class Commande {
     return Commande(
       id: id ?? this.id,
       client: client ?? this.client,
+      clientNom: identical(clientNom, _unset) ? this.clientNom : clientNom as String?,
+      clientEmail: identical(clientEmail, _unset)
+          ? this.clientEmail
+          : clientEmail as String?,
       livres: livres ?? this.livres,
       montantTotal: montantTotal ?? this.montantTotal,
       modePaiement: modePaiement ?? this.modePaiement,

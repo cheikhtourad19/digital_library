@@ -9,8 +9,15 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 
 class PdfPreviewCard extends StatefulWidget {
   final String livreId;
+  final Function(int)? onPageChanged;
+  final int initialPage;
 
-  const PdfPreviewCard({super.key, required this.livreId});
+  const PdfPreviewCard({
+    super.key,
+    required this.livreId,
+    this.onPageChanged,
+    this.initialPage = 0,
+  });
 
   @override
   State<PdfPreviewCard> createState() => _PdfPreviewCardState();
@@ -29,6 +36,7 @@ class _PdfPreviewCardState extends State<PdfPreviewCard> {
   double _zoomLevel = 1.0;
   int _currentPage = 0;
   int _totalPages = 0;
+  bool _initialPageSet = false;
 
   @override
   void initState() {
@@ -252,17 +260,27 @@ class _PdfPreviewCardState extends State<PdfPreviewCard> {
                 }
                 setState(() {
                   _totalPages = pages ?? 0;
-                  _currentPage = 0;
+                  _currentPage = widget.initialPage;
+                  _initialPageSet = true;
                 });
+                if (widget.initialPage > 0 && _pdfController != null) {
+                  Future.delayed(const Duration(milliseconds: 50), () {
+                    _pdfController?.setPage(widget.initialPage);
+                  });
+                }
               },
               onPageChanged: (page, total) {
                 if (!mounted) {
                   return;
                 }
+                if (_initialPageSet && page == widget.initialPage && widget.initialPage > 0) {
+                  _initialPageSet = false;
+                }
                 setState(() {
                   _currentPage = page ?? 0;
                   _totalPages = total ?? _totalPages;
                 });
+                widget.onPageChanged?.call(page ?? 0);
               },
             ),
           ),

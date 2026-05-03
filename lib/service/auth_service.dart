@@ -91,11 +91,15 @@ class AuthService {
     required String fullName,
     required String email,
     required String password,
+    DateTime? dateNaissance,
+    String? sexe,
   }) async {
     final result = await _apiService.signup(
       fullName: fullName,
       email: email,
       password: password,
+      dateNaissance: dateNaissance,
+      sexe: sexe,
     );
     await _saveSession(result.token, result.user);
     return result;

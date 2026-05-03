@@ -29,13 +29,14 @@ class MenuConfig {
         items: [
           MenuItem(label: 'Home', icon: Icons.home, pageIndex: 0),
           MenuItem(label: 'Books', icon: Icons.library_books, pageIndex: 1),
-          MenuItem(label: 'Favorites', icon: Icons.favorite, pageIndex: 2),
+          MenuItem(label: 'Order History', icon: Icons.receipt_long, pageIndex: 2),
+          MenuItem(label: 'My Books', icon: Icons.menu_book_rounded, pageIndex: 3),
         ],
       ),
       MenuSection(
         title: 'Account',
         items: [
-          MenuItem(label: 'Profile', icon: Icons.person, pageIndex: 3),
+          MenuItem(label: 'Profile', icon: Icons.person, pageIndex: 4),
           MenuItem(label: 'Logout', icon: Icons.logout, isLogout: true),
         ],
       ),
@@ -56,12 +57,13 @@ class MenuConfig {
         items: [
           MenuItem(label: 'Books', icon: Icons.library_books, pageIndex: 2),
           MenuItem(label: 'Users', icon: Icons.people, pageIndex: 3),
+          MenuItem(label: 'Orders', icon: Icons.receipt_long, pageIndex: 4),
         ],
       ),
       MenuSection(
         title: 'Account',
         items: [
-          MenuItem(label: 'Profile', icon: Icons.person, pageIndex: 4),
+          MenuItem(label: 'Profile', icon: Icons.person, pageIndex: 5),
           MenuItem(label: 'Logout', icon: Icons.logout, isLogout: true),
         ],
       ),

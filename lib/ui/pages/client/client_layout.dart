@@ -1,7 +1,6 @@
 import 'package:digital_library/core/di/injection.dart';
 import 'package:digital_library/ui/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
-
 import '../../../core/navigation/app_router.dart';
 import '../../../models/menu_model.dart';
 import '../../../service/auth_service.dart';
@@ -10,6 +9,7 @@ import '../../components/navigation/library_app_bar.dart';
 import 'client_books_page.dart';
 import 'client_favorites_page.dart';
 import 'client_home_page.dart';
+import 'client_order_history_page.dart';
 
 class ClientLayout extends StatefulWidget {
   final int initialIndex;
@@ -27,6 +27,7 @@ class _ClientLayoutState extends State<ClientLayout> {
   final List<Widget> _pages = const [
     ClientHomePage(),
     ClientBooksPage(),
+    ClientOrderHistoryPage(),
     ClientFavoritesPage(),
     ProfilePage(),
   ];
@@ -34,7 +35,8 @@ class _ClientLayoutState extends State<ClientLayout> {
   final List<String> _titles = const [
     'Digital Library',
     'Books',
-    'Favorites',
+    'Order History',
+    'My Books',
     'Profile',
   ];
 

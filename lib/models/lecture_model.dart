@@ -4,6 +4,10 @@ class Lecture {
   final String id;
   final String client;
   final String livre;
+  final String? livreTitre;
+  final List<String> livreAuteur;
+  final int? nombrePages;
+  final String? couvertureUrl;
   final DateTime? dateDebut;
   final DateTime? dateDerniereLecture;
   final int dernierePage;
@@ -17,6 +21,10 @@ class Lecture {
     required this.id,
     required this.client,
     required this.livre,
+    this.livreTitre,
+    this.livreAuteur = const [],
+    this.nombrePages,
+    this.couvertureUrl,
     this.dateDebut,
     this.dateDerniereLecture,
     required this.dernierePage,
@@ -28,10 +36,29 @@ class Lecture {
   });
 
   factory Lecture.fromJson(Map<String, dynamic> json) {
+    final livreJson = json['livre'];
+    String? livreTitre;
+    List<String> livreAuteur = [];
+    int? nombrePages;
+
+    if (livreJson is Map<String, dynamic>) {
+      livreTitre = livreJson['titre']?.toString();
+      if (livreJson['auteur'] is List) {
+        livreAuteur = (livreJson['auteur'] as List)
+            .map((e) => e.toString())
+            .toList();
+      }
+      nombrePages = _parseInt(livreJson['nombrePages']);
+    }
+
     return Lecture(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
       client: (json['client'] ?? '').toString(),
-      livre: (json['livre'] ?? '').toString(),
+      livre: livreJson is String ? livreJson : (livreJson?['_id'] ?? '').toString(),
+      livreTitre: livreTitre ?? json['livreTitre']?.toString(),
+      livreAuteur: livreAuteur,
+      nombrePages: nombrePages ?? json['nombrePages'],
+      couvertureUrl: json['couvertureUrl']?.toString(),
       dateDebut: _parseDate(json['dateDebut']),
       dateDerniereLecture: _parseDate(json['dateDerniereLecture']),
       dernierePage: _parseInt(json['dernierePage']),

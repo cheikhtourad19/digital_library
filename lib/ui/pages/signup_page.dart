@@ -27,6 +27,8 @@ class _SignUpPageState extends State<SignUpPage> {
     'password': FormControl<String>(
       validators: [Validators.required, Validators.minLength(6)],
     ),
+    'dateNaissance': FormControl<DateTime>(),
+    'sexe': FormControl<String>(value: 'Homme'),
   });
 
   @override
@@ -49,6 +51,9 @@ class _SignUpPageState extends State<SignUpPage> {
             .trim(),
         email: (_form.control('email') as FormControl<String>).value!.trim(),
         password: (_form.control('password') as FormControl<String>).value!,
+        dateNaissance: (_form.control('dateNaissance') as FormControl<DateTime>)
+            .value,
+        sexe: (_form.control('sexe') as FormControl<String>).value,
       );
 
       if (!mounted) return;

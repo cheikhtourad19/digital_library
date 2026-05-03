@@ -7,6 +7,7 @@ class Avis {
   final int note;
   final String commentaire;
   final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   Avis({
     required this.id,
@@ -15,6 +16,7 @@ class Avis {
     required this.note,
     required this.commentaire,
     this.createdAt,
+    this.updatedAt,
   });
 
   factory Avis.fromJson(Map<String, dynamic> json) {
@@ -36,6 +38,7 @@ class Avis {
       note: _parseInt(json['note']),
       commentaire: (json['commentaire'] ?? '').toString(),
       createdAt: _parseDate(json['createdAt']),
+      updatedAt: _parseDate(json['updatedAt']),
     );
   }
 
@@ -48,6 +51,7 @@ class Avis {
       'note': note,
       'commentaire': commentaire,
       'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
     };
   }
 
@@ -58,6 +62,7 @@ class Avis {
     int? note,
     String? commentaire,
     Object? createdAt = _unset,
+    Object? updatedAt = _unset,
   }) {
     return Avis(
       id: id ?? this.id,
@@ -70,6 +75,9 @@ class Avis {
       createdAt: identical(createdAt, _unset)
           ? this.createdAt
           : createdAt as DateTime?,
+      updatedAt: identical(updatedAt, _unset)
+          ? this.updatedAt
+          : updatedAt as DateTime?,
     );
   }
 

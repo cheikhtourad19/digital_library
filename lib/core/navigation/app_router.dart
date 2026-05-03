@@ -2,7 +2,10 @@ import 'package:digital_library/models/user_model.dart';
 import 'package:digital_library/ui/pages/admin/admin_book_detail_page.dart';
 import 'package:digital_library/ui/pages/admin/admin_create_book_page.dart';
 import 'package:digital_library/ui/pages/admin/admin_user_detail_page.dart';
+import 'package:digital_library/ui/pages/book_details/book_detail_page.dart';
 import 'package:digital_library/ui/pages/client/client_cart_page.dart';
+import 'package:digital_library/ui/pages/client/client_checkout_page.dart';
+import 'package:digital_library/ui/pages/client/client_read_book_page.dart';
 import 'package:flutter/material.dart';
 
 import '../../ui/pages/admin/admin_layout.dart';
@@ -31,7 +34,10 @@ class AppRouter {
   static const String adminCreateBookPage = '/admin/book/create';
   static const String adminBookDetailPage = '/admin/book/detail';
   static const String clientCartPage = '/client/cart';
-  
+  static const String clientCheckoutPage = '/client/checkout';
+  static const String clientBookDetailPage = '/client/book/detail';
+  static const String clientReadBookPage = '/client/book/read';
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case sessionGate:
@@ -63,6 +69,22 @@ class AppRouter {
         return _route(AdminBookDetailPage(livreId: livreId), settings);
       case clientCartPage:
         return _route(ClientCartPage(), settings);
+      case clientCheckoutPage:
+        return _route(const ClientCheckoutPage(), settings);
+      case clientBookDetailPage:
+        final livreId = settings.arguments as String;
+        return _route(BookDetailPage(livreId: livreId), settings);
+      case clientReadBookPage:
+        String livreId;
+        int startPage = 0;
+        if (settings.arguments is Map) {
+          final args = settings.arguments as Map<String, dynamic>;
+          livreId = args['livreId'] as String;
+          startPage = args['startPage'] as int? ?? 0;
+        } else {
+          livreId = settings.arguments as String;
+        }
+        return _route(ClientReadBookPage(livreId: livreId, startPage: startPage), settings);
       default:
         return _route(const SessionGatePage(), settings);
     }

@@ -1,5 +1,7 @@
 import 'package:digital_library/core/navigation/app_router.dart';
+import 'package:digital_library/providers/cart_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/utils/app_colors.dart';
 
 class LibraryAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -74,20 +76,20 @@ class LibraryAppBar extends StatelessWidget implements PreferredSizeWidget {
                 child: isAdmin
                     ? _AdminBadge()
                     : Builder(
-                        builder: (context) => IconButton(
-                          onPressed:
-                              onCartTap ??
-                              () {
-                                Navigator.of(
+                        builder: (context) {
+                          // Watch cart count for badge reactivity
+                          final cartCount = context
+                              .watch<CartProvider>()
+                              .totalCount;
+                          return _CartIconButton(
+                            count: cartCount,
+                            onTap:
+                                onCartTap ??
+                                () => Navigator.of(
                                   context,
-                                ).pushNamed(AppRouter.clientCartPage);
-                              },
-                          tooltip: 'Cart',
-                          icon: const Icon(
-                            Icons.shopping_cart_outlined,
-                            color: AppColors.surface,
-                          ),
-                        ),
+                                ).pushNamed(AppRouter.clientCartPage),
+                          );
+                        },
                       ),
               ),
             ],
@@ -99,6 +101,69 @@ class LibraryAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 0);
+}
+
+// ── Cart icon with animated badge ─────────────────────────────
+class _CartIconButton extends StatelessWidget {
+  final int count;
+  final VoidCallback onTap;
+
+  const _CartIconButton({required this.count, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          IconButton(
+            onPressed: onTap,
+            tooltip: 'Cart',
+            icon: const Icon(
+              Icons.shopping_cart_outlined,
+              color: AppColors.surface,
+            ),
+          ),
+          if (count > 0)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: IgnorePointer(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  transitionBuilder: (child, anim) =>
+                      ScaleTransition(scale: anim, child: child),
+                  child: Container(
+                    key: ValueKey(count),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.primary, width: 1.5),
+                    ),
+                    child: Text(
+                      count > 99 ? '99+' : '$count',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 // ── Admin role badge ───────────────────────────────────────────

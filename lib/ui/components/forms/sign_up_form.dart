@@ -66,6 +66,61 @@ class SignUpForm extends StatelessWidget {
                   'Password must be at least 6 characters',
             },
           ),
+          const SizedBox(height: 16),
+
+          // ── Birth Date (optional) ─────────
+          ReactiveDatePicker<DateTime>(
+            formControlName: 'dateNaissance',
+            firstDate: DateTime(1900),
+            lastDate: DateTime.now(),
+            builder: (context, picker, child) {
+              final value = picker.value;
+              final label = value == null
+                  ? 'Select birth date (optional)'
+                  : '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year}';
+              return InkWell(
+                onTap: picker.showPicker,
+                borderRadius: BorderRadius.circular(12),
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Birth Date',
+                    prefixIcon: Icon(
+                      Icons.calendar_today_rounded,
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: value == null
+                          ? AppColors.textMuted
+                          : AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // ── Gender (optional) ─────────────
+          ReactiveDropdownField<String>(
+            formControlName: 'sexe',
+            decoration: const InputDecoration(
+              labelText: 'Gender',
+              prefixIcon: Icon(Icons.wc_rounded, color: AppColors.secondary),
+            ),
+            items: const [
+              DropdownMenuItem<String>(
+                value: 'Homme',
+                child: Text('Homme'),
+              ),
+              DropdownMenuItem<String>(
+                value: 'Femme',
+                child: Text('Femme'),
+              ),
+            ],
+          ),
           const SizedBox(height: 24),
 
           // ── Submit ─────────────────────
